@@ -163,7 +163,7 @@ export default function NewsArticlePage() {
     >
       {/* Header (Reused from DailyPostClone) */}
       <header
-        className={`relative py-6 px-4 lg:px-8 transition-all duration-300 ${
+        className={`relative py-1 px-4 lg:px-8 transition-all duration-300 ${
           darkMode
             ? "bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900"
             : "bg-gradient-to-r from-white via-gray-50 to-white"
