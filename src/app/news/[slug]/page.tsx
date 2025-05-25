@@ -185,7 +185,7 @@ export default function NewsArticlePage() {
                 <Image
                   alt="Logo"
                   src={logo}
-                  className="w-auto h-16 lg:h-20 relative z-10 transition-all duration-300 group-hover:brightness-110"
+                  className="w-auto h-9 lg:h-20 relative z-10 transition-all duration-300 group-hover:brightness-110"
                 />
               </Link>
             </div>
@@ -240,16 +240,7 @@ export default function NewsArticlePage() {
                   <div className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-red-500 to-red-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left w-full"></div>
                 </div>
               </div>
-              <button
-                onClick={toggleDarkMode}
-                className={`p-3 rounded-xl transition-all duration-300 hover:scale-110 ${
-                  darkMode
-                    ? "bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white"
-                    : "bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800"
-                } shadow-md hover:shadow-lg`}
-              >
-                {darkMode ? <Sun size={24} /> : <Moon size={24} />}
-              </button>
+              
             </div>
           </div>
           <nav
