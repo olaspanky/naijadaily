@@ -138,10 +138,35 @@ export default function NewsArticlePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <p className="text-xl font-serif text-gray-900 dark:text-gray-100">
-          Loading...
-        </p>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 ">
+       <main className="container mx-auto px-4 lg:px-8 py-6">
+          <div className="flex flex-col lg:flex-row gap-6">
+            <div className="w-full lg:w-2/3">
+              <div
+                className={`${
+                  darkMode ? "bg-gray-800" : "bg-white"
+                } rounded-lg shadow-md p-6 lg:p-8`}
+              >
+                <div className="w-24 h-6 bg-gray-300 dark:bg-gray-700 rounded-full mb-4 animate-pulse"></div>
+                <div className="w-full h-12 bg-gray-300 dark:bg-gray-700 rounded mb-4 animate-pulse"></div>
+                <div className="flex justify-between items-center mb-4">
+                  <div className="w-48 h-4 bg-gray-300 dark:bg-gray-700 rounded animate-pulse"></div>
+                  <div className="w-24 h-4 bg-gray-300 dark:bg-gray-700 rounded animate-pulse"></div>
+                </div>
+                <div className="w-full h-64 lg:h-96 bg-gray-300 dark:bg-gray-700 rounded-lg mb-6 animate-pulse"></div>
+                <div className="space-y-4">
+                  {[...Array(4)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="w-full h-4 bg-gray-300 dark:bg-gray-700 rounded animate-pulse"
+                    ></div>
+                  ))}
+                </div>
+              </div>
+            </div>
+           
+          </div>
+        </main>
       </div>
     );
   }
