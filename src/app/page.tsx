@@ -655,10 +655,10 @@ export default function DailyPostClone() {
             <div>
               <h2 className="text-lg font-semibold mb-4">Contact Us</h2>
               <address className="not-italic text-gray-400">
-                <p className="mb-2">123 News Street</p>
-                <p className="mb-2">Lagos, Nigeria</p>
+                <p className="mb-2">Suite 4, Block A, G-Wing, Bassan Plaza, Off Herbert Macaulay Way, Central Business District, FCT-Abuja.</p>
+                <p className="mb-2">Abuja, Nigeria</p>
                 <p className="mb-2">Email: info@naijadaily.ng</p>
-                <p>Phone: +234 123 456 7890</p>
+                <p>Phone: +234 704 203 7202</p>
               </address>
             </div>
           </div>
