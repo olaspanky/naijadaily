@@ -394,7 +394,7 @@ export default function NewsArticlePage() {
                   <span>
                     By {newsItem.createdBy} • {newsItem.createdAt}
                   </span>
-                  <span>{newsItem.views} views</span>
+                  <span> views</span>
                 </div>
                 <Image
                   src={newsItem.newsImage}
