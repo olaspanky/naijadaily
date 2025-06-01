@@ -561,7 +561,7 @@ export default function NewsArticlePage() {
               <address className="not-italic text-gray-400">
                 <p className="mb-2">123 News Street</p>
                 <p className="mb-2">Lagos, Nigeria</p>
-                <p className="mb-2">Email: info@dailypost.ng</p>
+                <p className="mb-2">Email: info@naijadaily.ng</p>
                 <p>Phone: +234 123 456 7890</p>
               </address>
             </div>
