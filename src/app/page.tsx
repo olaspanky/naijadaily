@@ -408,6 +408,11 @@ export default function DailyPostClone() {
                     darkMode ? "bg-gray-800" : "bg-white"
                   } rounded-lg shadow-md overflow-hidden`}
                 >
+                   <Link
+                        href={`/news/${news.slug}`}
+                        className="text-sm text-red-600 hover:underline font-medium"
+                        onClick={() => recordView(news.id)}
+                      >
                   <img
                     src={news.image}
                     alt={news.title}
@@ -438,6 +443,7 @@ export default function DailyPostClone() {
                       </Link>
                     </div>
                   </div>
+                  </Link>
                 </div>
               ))
             ) : (
