@@ -427,7 +427,7 @@ export default function DailyPostClone() {
                     </p>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-500">
-                        {news.date} • {news.views} views
+                        {news.date}  
                       </span>
                       <Link
                         href={`/news/${news.slug}`}
