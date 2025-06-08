@@ -5,7 +5,8 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "encrypted-tbn3.gstatic.com",
+        hostname: '**', // Allow all hostnames
+        port: "", // No specific port
         pathname: "**", // Allow all paths under this hostname
       },
     ],

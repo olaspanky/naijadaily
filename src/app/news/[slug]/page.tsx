@@ -404,13 +404,13 @@ export default function NewsArticlePage() {
                   className="w-full h-64 lg:h-96 object-cover rounded-lg mb-6"
                 />
               </div>
-              <div
-                className={`prose prose-lg ${
-                  darkMode ? "prose-invert" : ""
-                } max-w-none`}
-              >
-                <p>{newsItem.newsBody}</p>
-              </div>
+             <div
+  className={`prose prose-lg ${
+    darkMode ? "prose-invert" : ""
+  } max-w-none`}
+  dangerouslySetInnerHTML={{ __html: newsItem.newsBody }}
+/>
+
               <div className="mt-8 flex justify-between items-center">
                 <Link
                   href="/"

@@ -395,62 +395,59 @@ export default function DailyPostClone() {
         </div>
 
         {/* Featured News Section */}
-        <section className="mb-8">
-          <h2 className="text-2xl font-bold border-b-2 border-red-600 pb-2 mb-4">
-            Featured News
-          </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {featuredNews.length > 0 ? (
-              featuredNews.map((news) => (
-                <div
-                  key={news.id}
-                  className={`${
-                    darkMode ? "bg-gray-800" : "bg-white"
-                  } rounded-lg shadow-md overflow-hidden`}
-                >
-                   <Link
-                        href={`/news/${news.slug}`}
-                        className="text-sm text-red-600 hover:underline font-medium"
-                        onClick={() => recordView(news.id)}
-                      >
-                  <img
-                    src={news.image}
-                    alt={news.title}
-                    className="w-full h-48 object-cover"
-                  />
-                  <div className="p-4">
-                    <span className="inline-block px-2 py-1 text-xs font-semibold text-white bg-red-600 rounded mb-2">
-                      {news.category}
-                    </span>
-                    <h3 className="text-xl font-bold mb-2">{news.title}</h3>
-                    <p
-                      className={`mb-3 ${
-                        darkMode ? "text-gray-300" : "text-gray-600"
-                      }`}
-                    >
-                      {news.excerpt}
-                    </p>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-500">
-                        {news.date}  
-                      </span>
-                      <Link
-                        href={`/news/${news.slug}`}
-                        className="text-sm text-red-600 hover:underline font-medium"
-                        onClick={() => recordView(news.id)}
-                      >
-                        Read More
-                      </Link>
-                    </div>
-                  </div>
-                  </Link>
-                </div>
-              ))
-            ) : (
-              <p>Loading news...</p>
-            )}
+       <section className="mb-8">
+  <h2 className="text-2xl font-bold border-b-2 border-red-600 pb-2 mb-4">
+    Featured News
+  </h2>
+
+  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    {featuredNews.length > 0 ? (
+      featuredNews.map((news) => (
+        <div
+          key={news.id}
+          className={`${
+            darkMode ? "bg-gray-800 text-white" : "bg-white text-black"
+          } rounded-lg shadow-md overflow-hidden`}
+        >
+          <img
+            src={news.image}
+            alt={news.title}
+            className="w-full h-48 object-cover"
+          />
+          <div className="p-4">
+            <span className="inline-block px-2 py-1 text-xs font-semibold text-white bg-red-600 rounded mb-2">
+              {news.category}
+            </span>
+            <h3 className="text-xl font-bold mb-2">{news.title}</h3>
+
+            <div
+              className={`mb-3 text-sm leading-relaxed ${
+                darkMode ? "text-gray-300" : "text-gray-700"
+              }`}
+              dangerouslySetInnerHTML={{ __html: news.excerpt }}
+            />
+
+            <div className="flex justify-between items-center text-sm text-gray-500">
+              <span>
+                {news.date} • {news.views} views
+              </span>
+              <Link
+                href={`/news/${news.slug}`}
+                className="text-red-600 hover:underline font-medium"
+                onClick={() => recordView(news.id)}
+              >
+                Read More
+              </Link>
+            </div>
           </div>
-        </section>
+        </div>
+      ))
+    ) : (
+      <p className="text-gray-500">Loading news...</p>
+    )}
+  </div>
+</section>
+
 
         {/* Two column layout for content */}
         <div className="flex flex-col lg:flex-row gap-4">
@@ -661,10 +658,10 @@ export default function DailyPostClone() {
             <div>
               <h2 className="text-lg font-semibold mb-4">Contact Us</h2>
               <address className="not-italic text-gray-400">
-                <p className="mb-2">Suite 4, Block A, G-Wing, Bassan Plaza, Off Herbert Macaulay Way, Central Business District, FCT-Abuja.</p>
-                <p className="mb-2">Abuja, Nigeria</p>
-                <p className="mb-2">Email: info@naijadaily.ng</p>
-                <p>Phone: +234 704 203 7202</p>
+                <p className="mb-2">123 News Street</p>
+                <p className="mb-2">Lagos, Nigeria</p>
+                <p className="mb-2">Email: info@dailypost.ng</p>
+                <p>Phone: +234 123 456 7890</p>
               </address>
             </div>
           </div>
