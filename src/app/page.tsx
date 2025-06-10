@@ -452,52 +452,57 @@ export default function DailyPostClone() {
         {/* Two column layout for content */}
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Main news column */}
-          <div className="w-full lg:w-2/3">
-            <section className="mb-8">
-              <h2 className="text-2xl font-bold border-b-2 border-red-600 pb-2 mb-4">
-                Latest News
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {featuredNews.slice(0, 4).map((news) => (
-                  <div
-                    key={news.id}
-                    className={`${
-                      darkMode ? "bg-gray-800" : "bg-white"
-                    } rounded-lg shadow-md overflow-hidden`}
-                  >
-                    <img
-                      src={news.image}
-                      alt={news.title}
-                      className="w-full h-40 object-cover"
-                    />
-                    <div className="p-4">
-                      <span className="inline-block px-2 py-1 text-xs font-semibold text-white bg-red-600 rounded mb-2">
-                        {news.category}
-                      </span>
-                      <h3 className="text-lg font-bold mb-2">{news.title}</h3>
-                      <p
-                        className={`text-sm mb-3 ${
-                          darkMode ? "text-gray-300" : "text-gray-600"
-                        }`}
-                      >
-                        {news.excerpt}
-                      </p>
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs text-gray-500">{news.date}</span>
-                        <Link
-                          href={`/news/${news.slug}`}
-                          className="text-sm text-red-600 hover:underline font-medium"
-                          onClick={() => recordView(news.id)}
-                        >
-                          Read More
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+       <div className="w-full lg:w-2/3">
+    <section className="mb-8">
+      <h2 className="text-2xl font-bold border-b-2 border-red-600 pb-2 mb-4">
+        Latest News
+      </h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {featuredNews.slice(0, 4).map((news) => (
+          <article
+            key={news.id}
+            className={`${
+              darkMode ? "bg-gray-800" : "bg-white"
+            } rounded-lg shadow-md overflow-hidden`}
+          >
+            <img
+              src={news.image}
+              alt={news.title}
+              className="w-full h-40 object-cover"
+              loading="lazy"
+            />
+
+           
+            <div className="p-4">
+              <span className="inline-block px-2 py-1 text-xs font-semibold text-white bg-red-600 rounded mb-2">
+                {news.category}
+              </span>
+              <h3 className="text-lg font-bold mb-2">{news.title}</h3>
+              
+                <div
+              className={`mb-3 text-sm leading-relaxed ${
+                darkMode ? "text-gray-300" : "text-gray-700"
+              }`}
+              dangerouslySetInnerHTML={{ __html: news.excerpt }}
+            />
+              <div className="flex justify-between items-center">
+                <time className="text-xs text-gray-500" dateTime={news.date}>
+                  {new Date(news.date).toLocaleDateString()}
+                </time>
+                <Link
+                  href={`/news/${news.slug}`}
+                  className="text-sm text-red-600 hover:underline font-medium"
+                  onClick={() => recordView(news.id)}
+                >
+                  Read More
+                </Link>
               </div>
-            </section>
-          </div>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  </div>
 
           {/* Sidebar */}
           <div className="w-full lg:w-1/3">
