@@ -409,6 +409,11 @@ export default function DailyPostClone() {
             darkMode ? "bg-gray-800 text-white" : "bg-white text-black"
           } rounded-lg shadow-md overflow-hidden`}
         >
+           <Link
+                href={`/news/${news.slug}`}
+                className=""
+                onClick={() => recordView(news.id)}
+              >
           <img
             src={news.image}
             alt={news.title}
@@ -440,6 +445,7 @@ export default function DailyPostClone() {
               </Link>
             </div>
           </div>
+          </Link>
         </div>
       ))
     ) : (
@@ -465,6 +471,11 @@ export default function DailyPostClone() {
               darkMode ? "bg-gray-800" : "bg-white"
             } rounded-lg shadow-md overflow-hidden`}
           >
+             <Link
+                  href={`/news/${news.slug}`}
+                  className=""
+                  onClick={() => recordView(news.id)}
+                >
             <img
               src={news.image}
               alt={news.title}
@@ -498,6 +509,7 @@ export default function DailyPostClone() {
                 </Link>
               </div>
             </div>
+            </Link>
           </article>
         ))}
       </div>
