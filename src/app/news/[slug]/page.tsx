@@ -372,14 +372,14 @@ export default function NewsArticlePage() {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 lg:px-8 py-6">
+      <main className="container mx-auto p-1 lg:px-8 lg:py-6">
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Article Content */}
           <div className="w-full lg:w-2/3">
             <article
               className={`${
                 darkMode ? "bg-gray-800" : "bg-white"
-              } rounded-lg shadow-md p-6 lg:p-8`}
+              } rounded-lg shadow-md p-2 lg:p-8`}
             >
               <div className="mb-6">
                 <span
@@ -394,7 +394,7 @@ export default function NewsArticlePage() {
                   <span>
                     By {newsItem.createdBy} • {newsItem.createdAt}
                   </span>
-                  <span>{newsItem.views} views</span>
+                  <span></span>
                 </div>
                 <Image
                   src={newsItem.newsImage}
