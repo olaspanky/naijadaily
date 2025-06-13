@@ -376,22 +376,17 @@ export default function DailyPostClone() {
             darkMode ? "bg-gray-800" : "bg-white"
           }`}
         >
-          <div className="py-16 bg-gradient-to-r from-blue-500 to-blue-700 rounded-lg flex items-center justify-center">
-            <div>
-              <h3 className="text-xl font-bold text-white mb-2">
-                Advertise With Us
-              </h3>
-              <p className="text-sm text-gray-200 mb-4">
-                Reach millions with Naija Daily's premium ad spaces!
-              </p>
-              <Link
-                href="/advertise"
-                className="inline-block px-6 py-2 bg-white text-blue-700 font-semibold rounded hover:bg-gray-200"
-              >
-                Contact Us
-              </Link>
-            </div>
-          </div>
+        <div className=" flex items-center justify-center">
+  <div className="flex items-center">
+    {/* GIF on the left */}
+    <img
+      src="/assets/ad1.gif" // Replace with your GIF's path or URL
+      alt="Advertisement GIF"
+      className=" mr-4" // Adjust size and spacing as needed
+    />
+   
+  </div>
+</div>
         </div>
 
         {/* Featured News Section */}
@@ -520,27 +515,22 @@ export default function DailyPostClone() {
           <div className="w-full lg:w-1/3">
             {/* Ad Placement - Sidebar */}
             <div
-              className={`mb-6 p-4 rounded-lg shadow-md text-center ${
-                darkMode ? "bg-gray-800" : "bg-white"
-              }`}
-            >
-              <div className="py-24 bg-gradient-to-r from-green-500 to-green-700 rounded-lg flex items-center justify-center">
-                <div>
-                  <h3 className="text-xl font-bold text-white mb-2">
-                    Sponsor Our News
-                  </h3>
-                  <p className="text-sm text-gray-200 mb-4">
-                    Partner with Naija Daily to showcase your brand!
-                  </p>
-                  <Link
-                    href="/advertise"
-                    className="inline-block px-6 py-2 bg-white text-green-700 font-semibold rounded hover:bg-gray-200"
-                  >
-                    Learn More
-                  </Link>
-                </div>
-              </div>
-            </div>
+          className={`mb-6 p-4 rounded-lg shadow-md text-center ${
+            darkMode ? "bg-gray-800" : "bg-white"
+          }`}
+        >
+        <div className=" flex items-center justify-center">
+  <div className="flex items-center">
+    {/* GIF on the left */}
+    <img
+      src="/assets/ad2.jpeg" // Replace with your GIF's path or URL
+      alt="Advertisement GIF"
+      className=" mr-4" // Adjust size and spacing as needed
+    />
+   
+  </div>
+</div>
+        </div>
 
             <section
               className={`${
@@ -579,7 +569,7 @@ export default function DailyPostClone() {
 
       <footer className={`py-8 ${darkMode ? "bg-gray-800" : "bg-gray-900"} text-white`}>
         <div className="container mx-auto px-4 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="flex lg:px-48 gap-8">
             <div>
               <h3 className="text-xl font-bold mb-4">Naija Daily</h3>
               <p className="text-gray-400 mb-4">
