@@ -496,8 +496,9 @@ export default function DailyPostClone() {
             />
               <div className="flex justify-between items-center">
                 <time className="text-xs text-gray-500" dateTime={news.date}>
-                  {new Date(news.date).toLocaleDateString()}
-                </time>
+<span>
+                {news.date}
+              </span>                </time>
                 <Link
                   href={`/news/${news.slug}`}
                   className="text-sm text-red-600 hover:underline font-medium"

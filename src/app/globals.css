@@ -58,11 +58,11 @@ body {
         }
         
         .blink-slow {
-          animation: blink 3s infinite;
+          animation: blink 8s infinite;
         }
         
         .blink-fast {
-          animation: fastBlink 1s infinite;
+          animation: fastBlink 4s infinite;
         }
         
         .blink-glow {
