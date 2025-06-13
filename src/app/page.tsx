@@ -627,51 +627,7 @@ export default function DailyPostClone() {
                 </Link>
               </div>
             </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Categories</h3>
-              <ul className="space-y-2">
-                {categories.map((category, index) => (
-                  <li key={index}>
-                    <Link
-                      href={category === "Home" ? "/" : `/category/${generateSlug(category)}`}
-                      className="text-gray-400 hover:text-white"
-                    >
-                      {category}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
-              <ul className="space-y-2">
-                <li>
-                  <Link href="/about" className="text-gray-400 hover:text-white">
-                    About Us
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/contact" className="text-gray-400 hover:text-white">
-                    Contact
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/privacy" className="text-gray-400 hover:text-white">
-                    Privacy Policy
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/terms" className="text-gray-400 hover:text-white">
-                    Terms of Service
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/advertise" className="text-gray-400 hover:text-white">
-                    Advertise With Us
-                  </Link>
-                </li>
-              </ul>
-            </div>
+           
             <div>
               <h2 className="text-lg font-semibold mb-4">Contact Us</h2>
               <address className="not-italic text-gray-400">
