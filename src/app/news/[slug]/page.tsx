@@ -502,7 +502,7 @@ export default function NewsArticlePage() {
       </main>
 
       {/* Footer (Reused from DailyPostClone) */}
-     <footer className={`py-8 ${darkMode ? "bg-gray-800" : "bg-gray-900"} text-white`}>
+       <footer className={`py-8 ${darkMode ? "bg-gray-800" : "bg-gray-900"} text-white`}>
         <div className="container mx-auto px-4 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div>
@@ -603,7 +603,7 @@ export default function NewsArticlePage() {
                 <p className="mb-2">Suite 4, Block A, G-Wing, Bassan Plaza, Off Herbert Macaulay Way, Central Business District, FCT-Abuja.</p>
                 <p className="mb-2">Abuja, Nigeria</p>
                 <p className="mb-2">Email: info@naijadaily.ng</p>
-                <p>Phone: +234 704 203 7202</p>
+                <p>Phone: +2347042037202</p>
               </address>
             </div>
           </div>
