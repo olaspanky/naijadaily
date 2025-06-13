@@ -38,3 +38,34 @@ body {
   display: inline-block;
   animation: marquee 20s linear infinite;
 }
+
+ @keyframes blink {
+          0%, 50% {
+            opacity: 1;
+          }
+          51%, 100% {
+            opacity: 0.3;
+          }
+        }
+        
+        @keyframes fastBlink {
+          0%, 40% {
+            opacity: 1;
+          }
+          41%, 100% {
+            opacity: 0.1;
+          }
+        }
+        
+        .blink-slow {
+          animation: blink 3s infinite;
+        }
+        
+        .blink-fast {
+          animation: fastBlink 1s infinite;
+        }
+        
+        .blink-glow {
+          animation: blink 2s infinite;
+          filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+        }

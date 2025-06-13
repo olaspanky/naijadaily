@@ -450,6 +450,9 @@ export default function DailyPostClone() {
 </section>
 
 
+
+
+
         {/* Two column layout for content */}
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Main news column */}
@@ -514,23 +517,42 @@ export default function DailyPostClone() {
           {/* Sidebar */}
           <div className="w-full lg:w-1/3">
             {/* Ad Placement - Sidebar */}
-            <div
-          className={`mb-6 p-4 rounded-lg shadow-md text-center ${
-            darkMode ? "bg-gray-800" : "bg-white"
-          }`}
-        >
-        <div className=" flex items-center justify-center">
-  <div className="flex items-center">
-    {/* GIF on the left */}
-    <img
-      src="/assets/ad2.jpeg" // Replace with your GIF's path or URL
-      alt="Advertisement GIF"
-      className=" mr-4" // Adjust size and spacing as needed
-    />
-   
-  </div>
-</div>
+             <div
+        className={`mb-6 p-4 text-center ${
+          darkMode ? "bg-gray-800" : ""
+        }`}
+      >
+        <div className="flex items-center justify-center">
+          <div className="flex items-center">
+            {/* GIF with blinking animation */}
+            <img
+              src="/assets/ad2.jpeg"
+              alt="Advertisement GIF"
+              className="mr-4 animate-pulse"
+              style={{
+                animation: 'blink 2s infinite'
+              }}
+            />
+          </div>
         </div>
+      </div>
+
+      {/* Second Ad with Blinking Effect */}
+      <div className="mb-6 p-4 text-center">
+        <div className="flex items-center justify-center">
+          <div className="flex items-center">
+            {/* GIF with blinking animation */}
+            <img
+              src="/assets/ad3.jpeg"
+              alt="Advertisement GIF"
+              className="mr-4"
+              style={{
+                animation: 'blink 1.5s infinite'
+              }}
+            />
+          </div>
+        </div>
+      </div>
 
             <section
               className={`${
