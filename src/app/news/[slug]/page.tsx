@@ -6,6 +6,8 @@ import Image from "next/image";
 import logo from "../../../../public/ndb.png";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
+import DOMPurify from "isomorphic-dompurify"; // For sanitizing HTML
+
 
 // Helper function to generate URL-friendly slugs from titles
 const generateSlug = (title: string) => {
@@ -43,6 +45,29 @@ export default function NewsArticlePage() {
   const router = useRouter();
   const params = useParams();
   const slug = params.slug as string;
+  const sanitizedNewsBody = newsItem ? DOMPurify.sanitize(newsItem.newsBody) : "";
+
+  // Placeholder for share functionality (replace with actual logic)
+  const handleShare = () => {
+    if (!newsItem) return;
+    if (navigator.share) {
+      navigator.share({
+        title: newsItem.newsTitle,
+        url: window.location.href,
+      }).catch((err) => console.error("Share failed:", err));
+    } else {
+      // Fallback: Copy URL to clipboard or show a modal
+      navigator.clipboard.writeText(window.location.href);
+      // Show toast notification (implement with a UI library)
+    }
+  };
+
+  // Placeholder for subscribe functionality (replace with actual logic)
+  const handleSubscribe = () => {
+    // Implement subscription API call or form submission
+    console.log("Subscribe clicked");
+  };
+  
 
   // Fetch current date
   useEffect(() => {
@@ -372,134 +397,141 @@ export default function NewsArticlePage() {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto p-1 lg:px-8 lg:py-6">
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Article Content */}
-          <div className="w-full lg:w-2/3">
-            <article
-              className={`${
-                darkMode ? "bg-gray-800" : "bg-white"
-              } rounded-lg shadow-md p-2 lg:p-8`}
-            >
-              <div className="mb-6">
-                <span
-                  className="inline-block px-3 py-1 text-sm font-semibold text-white bg-red-600 rounded-full mb-4"
-                >
-                  {newsItem.category}
+   <main className="container mx-auto p-1 lg:px-8 lg:py-6">
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* Article Content */}
+        <div className="w-full lg:w-2/3">
+          <article
+            className={`${
+              darkMode ? "bg-gray-800" : "bg-white"
+            } rounded-lg shadow-md p-1 lg:p-8`}
+          >
+            <div className="mb-6">
+              <span className="inline-block px-3 py-1 text-sm font-semibold text-white bg-red-600 rounded-full mb-4">
+                {newsItem.category}
+              </span>
+              <h1 className="text-3xl lg:text-4xl font-bold mb-4">
+                {newsItem.newsTitle}
+              </h1>
+              <div className="flex justify-between items-center text-sm text-gray-500 mb-4">
+                <span>
+                  By {newsItem.createdBy} • {newsItem.createdAt}
                 </span>
-                <h1 className="text-3xl lg:text-4xl font-bold mb-4">
-                  {newsItem.newsTitle}
-                </h1>
-                <div className="flex justify-between items-center text-sm text-gray-500 mb-4">
-                  <span>
-                    By {newsItem.createdBy} • {newsItem.createdAt}
-                  </span>
-                  <span></span>
-                </div>
-                <Image
-                  src={newsItem.newsImage}
-                  alt={newsItem.newsTitle}
-                  width={800}
-                  height={400}
-                  className="w-full h-64 lg:h-96 object-cover rounded-lg mb-6"
-                />
+                {/* Replace empty span with meaningful content if needed */}
+                <span>{/* e.g., "5 min read" */}</span>
               </div>
-             <div
-  className={`prose prose-lg ${
-    darkMode ? "prose-invert" : ""
-  } max-w-none`}
-  dangerouslySetInnerHTML={{ __html: newsItem.newsBody }}
-/>
-
-              <div className="mt-8 flex justify-between items-center">
-                <Link
-                  href="/"
-                  className="text-red-600 hover:underline font-medium"
-                >
-                  ← Back to Home
-                </Link>
-                <div className="flex space-x-4">
-                  <button
-                    className="flex items-center text-gray-500 hover:text-red-600"
-                    onClick={() =>
-                      alert("Share functionality would be implemented here")
-                    }
-                  >
-                    <svg
-                      className="h-5 w-5 mr-2"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z" />
-                    </svg>
-                    Share
-                  </button>
-                </div>
-              </div>
-            </article>
-          </div>
-
-          {/* Sidebar */}
-          <div className="w-full lg:w-1/3">
-            {/* Ad Placement */}
-            <div
-              className={`mb-6 p-4 rounded-lg shadow-md text-center ${
-                darkMode ? "bg-gray-800" : "bg-white"
-              }`}
-            >
-              <div className="py-24 bg-gradient-to-r from-green-500 to-green-700 rounded-lg flex items-center justify-center">
-                <div>
-                  <h3 className="text-xl font-bold text-white mb-2">
-                    Sponsor Our News
-                  </h3>
-                  <p className="text-sm text-gray-200 mb-4">
-                    Partner with Naija Daily to showcase your brand!
-                  </p>
-                  <Link
-                    href="/advertise"
-                    className="inline-block px-6 py-2 bg-white text-green-700 font-semibold rounded hover:bg-gray-200"
-                  >
-                    Learn More
-                  </Link>
-                </div>
-              </div>
+              <Image
+                src={newsItem.newsImage}
+                alt={`Featured image for ${newsItem.newsTitle}`}
+                width={800}
+                height={400}
+                className="w-full h-auto aspect-[2/1] object-cover rounded-lg mb-6"
+                sizes="(max-width: 1024px) 100vw, 800px"
+                priority
+              />
             </div>
-
-            {/* Subscribe Section */}
-            <section
-              className={`${
-                darkMode ? "bg-gray-800" : "bg-white"
-              } rounded-lg shadow-md p-4`}
-            >
-              <h2 className="text-xl font-bold border-b-2 border-red-600 pb-2 mb-4">
-                Subscribe
-              </h2>
-              <p className="mb-4 text-sm">
-                Get the latest news delivered to your inbox
-              </p>
-              <div className="space-y-3">
-                <input
-                  type="email"
-                placeholder="Your email address"
-                  className={`w-full p-2 rounded border ${
-                    darkMode
-                      ? "bg-gray-700 border-gray-600"
-                      : "bg-gray-100 border-gray-300"
-                  }`}
-                />
+            <div
+              className={`prose prose-lg ${
+                darkMode ? "prose-invert" : ""
+              } max-w-none leading-relaxed 
+                [&>p]:mb-6 [&>h1]:mb-6 [&>h1]:mt-8
+                [&>h2]:mb-5 [&>h2]:mt-7 [&>h3]:mb-4 [&>h3]:mt-6
+                [&>h4]:mb-4 [&>h4]:mt-5 [&>h5]:mb-3 [&>h5]:mt-4
+                [&>h6]:mb-3 [&>h6]:mt-4 [&>ul]:mb-6 [&>ol]:mb-6 
+                [&>li]:mb-2 [&>blockquote]:mb-6 [&>blockquote]:mt-6
+                [&>pre]:mb-6 [&>pre]:mt-6 [&>table]:mb-6 [&>table]:mt-6
+                [&>hr]:mb-8 [&>hr]:mt-8`}
+              dangerouslySetInnerHTML={{ __html: sanitizedNewsBody }}
+            />
+            <div className="mt-8 flex justify-between items-center">
+              <Link
+                href="/"
+                className="text-red-600 hover:underline font-medium"
+              >
+                ← Back to Home
+              </Link>
+              <div className="flex space-x-4">
                 <button
-                  className="w-full py-2 px-4 bg-red-600 text-white font-medium rounded hover:bg-red-700"
-                  onClick={() =>
-                    alert("Subscription functionality would be implemented here")
-                  }
+                  className="flex items-center text-gray-500 hover:text-red-600"
+                  onClick={handleShare}
+                  aria-label="Share this article"
                 >
-                  Subscribe Now
+                  <svg
+                    className="h-5 w-5 mr-2"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z" />
+                  </svg>
+                  Share
                 </button>
               </div>
-            </section>
-          </div>
+            </div>
+          </article>
         </div>
-      </main>
+
+        {/* Sidebar */}
+        <div className="w-full lg:w-1/3">
+          {/* Ad Placement */}
+          <div
+            className={`mb-6 p-4 rounded-lg shadow-md text-center ${
+              darkMode ? "bg-gray-800" : "bg-white"
+            }`}
+          >
+            <div className="py-24 bg-gradient-to-r from-green-500 to-green-700 rounded-lg flex items-center justify-center">
+              <div>
+                <h3 className="text-xl font-bold text-white mb-2">
+                  Sponsor Our News
+                </h3>
+                <p className="text-sm text-gray-200 mb-4">
+                  Partner with Naija Daily to showcase your brand!
+                </p>
+                <Link
+                  href="/advertise"
+                  className="inline-block px-6 py-2 bg-white text-green-700 font-semibold rounded hover:bg-gray-200"
+                >
+                  Learn More
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Subscribe Section */}
+          <section
+            className={`${
+              darkMode ? "bg-gray-800" : "bg-white"
+            } rounded-lg shadow-md p-4`}
+          >
+            <h2 className="text-xl font-bold border-b-2 border-red-600 pb-2 mb-4">
+              Subscribe
+            </h2>
+            <p className="mb-4 text-sm">
+              Get the latest news delivered to your inbox
+            </p>
+            <div className="space-y-3">
+              <input
+                type="email"
+                placeholder="Your email address"
+                className={`w-full p-2 rounded border ${
+                  darkMode
+                    ? "bg-gray-700 border-gray-600"
+                    : "bg-gray-100 border-gray-300"
+                }`}
+                aria-label="Email address for subscription"
+              />
+              <button
+                className="w-full py-2 px-4 bg-red-600 text-white font-medium rounded hover:bg-red-700"
+                onClick={handleSubscribe}
+                aria-label="Subscribe to newsletter"
+              >
+                Subscribe Now
+              </button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
 
       {/* Footer (Reused from DailyPostClone) */}
        <footer className={`py-8 ${darkMode ? "bg-gray-800" : "bg-gray-900"} text-white`}>
