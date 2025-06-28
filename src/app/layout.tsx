@@ -13,8 +13,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Naijadaily.com",
-  description: "NaijaDaily.com",
+  title: {
+    default: "Naija Daily",
+    template: "%s - Naija Daily", // Allows page-specific titles to append to this
+  },
+  description: "Naija Daily - Nigeria's most comprehensive and trusted online newspaper delivering breaking news, politics, business, entertainment, sports, and more.",
 };
 
 export default function RootLayout({

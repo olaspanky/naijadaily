@@ -6,7 +6,7 @@ import Image from "next/image";
 import logo from "../../../../public/ndb.png";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
-import DOMPurify from "isomorphic-dompurify"; // For sanitizing HTML
+import DOMPurify from "isomorphic-dompurify";
 import Head from "next/head";
 
 // Helper function to generate URL-friendly slugs from titles
@@ -34,24 +34,23 @@ interface RecordViewResponse {
   views: number;
 }
 
-export default function NewsArticlePage() {
+export default function NewsArticlePage({ initialNewsItem }: { initialNewsItem?: NewsItem }) {
   const [darkMode, setDarkMode] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState("");
   const [categories, setCategories] = useState(["Home"]);
-  const [newsItem, setNewsItem] = useState<NewsItem | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [newsItem, setNewsItem] = useState<NewsItem | null>(initialNewsItem || null);
+  const [loading, setLoading] = useState(!initialNewsItem);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const params = useParams();
   const slug = params.slug as string;
   const sanitizedNewsBody = newsItem ? DOMPurify.sanitize(newsItem.newsBody) : "";
-  const excerpt = newsItem ? newsItem.newsBody.substring(0, 150) + "..." : ""; // Create excerpt for meta tags
+  const excerpt = newsItem ? DOMPurify.sanitize(newsItem.newsBody.substring(0, 150) + "...") : "";
 
-  // Share functionality
   const handleShare = () => {
     if (!newsItem) return;
-    const shareUrl = `https://naijadaily.ng/news/${newsItem.slug}`;
+    const shareUrl = `https://www.naijadaily.ng/news/${newsItem.slug}`;
     if (navigator.share) {
       navigator.share({
         title: newsItem.newsTitle,
@@ -64,13 +63,10 @@ export default function NewsArticlePage() {
     }
   };
 
-  // Subscribe functionality (placeholder)
   const handleSubscribe = () => {
     console.log("Subscribe clicked");
-    // Implement subscription logic here
   };
 
-  // Fetch current date
   useEffect(() => {
     const date = new Date();
     setCurrentDate(
@@ -83,7 +79,6 @@ export default function NewsArticlePage() {
     );
   }, []);
 
-  // Fetch categories from API
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -101,7 +96,6 @@ export default function NewsArticlePage() {
     fetchCategories();
   }, []);
 
-  // Fetch news article by slug
   useEffect(() => {
     const fetchNewsArticle = async () => {
       try {
@@ -112,7 +106,7 @@ export default function NewsArticlePage() {
             (item: NewsItem) => generateSlug(item.newsTitle) === slug
           );
           if (article) {
-            setNewsItem({
+            const updatedArticle = {
               ...article,
               slug: generateSlug(article.newsTitle),
               createdAt: new Date(article.createdAt).toLocaleDateString("en-US", {
@@ -120,7 +114,8 @@ export default function NewsArticlePage() {
                 day: "numeric",
                 year: "numeric",
               }),
-            });
+            };
+            setNewsItem(updatedArticle);
             await recordView(article._id);
           } else {
             setError("Article not found");
@@ -135,12 +130,11 @@ export default function NewsArticlePage() {
         setLoading(false);
       }
     };
-    if (slug) {
+    if (!initialNewsItem && slug) {
       fetchNewsArticle();
     }
-  }, [slug]);
+  }, [slug, initialNewsItem]);
 
-  // Function to record a view for an article
   const recordView = async (newsId: string): Promise<void> => {
     try {
       const response = await fetch(
@@ -156,7 +150,6 @@ export default function NewsArticlePage() {
     }
   };
 
-  // Toggle dark mode
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
   };
@@ -168,24 +161,53 @@ export default function NewsArticlePage() {
       }`}
       style={{ fontFamily: "'Times New Roman', Times, serif" }}
     >
-      {/* Open Graph and Twitter Card Meta Tags */}
       <Head>
         <title>{newsItem ? `${newsItem.newsTitle} - Naija Daily` : "Naija Daily"}</title>
-        <meta name="description" content={newsItem ? excerpt : "Naija Daily - Nigeria's trusted news source"} />
+        <meta
+          name="description"
+          content={newsItem ? excerpt : "Naija Daily - Nigeria's trusted news source"}
+        />
         {/* Open Graph Meta Tags */}
-        <meta property="og:title" content={newsItem ? newsItem.newsTitle : "Naija Daily"} />
-        <meta property="og:description" content={newsItem ? excerpt : "Nigeria's most comprehensive and trusted online newspaper."} />
-        <meta property="og:image" content={newsItem ? newsItem.newsImage : "https://naijadaily.ng/default-image.jpg"} />
-        <meta property="og:image:alt" content={newsItem ? newsItem.newsTitle : "Naija Daily"} />
-        <meta property="og:url" content={newsItem ? `https://naijadaily.ng/news/${newsItem.slug}` : "https://naijadaily.ng"} />
+        <meta
+          property="og:title"
+          content={newsItem ? newsItem.newsTitle : "Naija Daily"}
+        />
+        <meta
+          property="og:description"
+          content={newsItem ? excerpt : "Nigeria's most comprehensive and trusted online newspaper."}
+        />
+        <meta
+          property="og:image"
+          content={newsItem ? newsItem.newsImage : "https://www.naijadaily.ng/default-image.jpg"}
+        />
+        <meta
+          property="og:image:alt"
+          content={newsItem ? newsItem.newsTitle : "Naija Daily"}
+        />
+        <meta
+          property="og:url"
+          content={newsItem ? `https://www.naijadaily.ng/news/${newsItem.slug}` : "https://www.naijadaily.ng"}
+        />
         <meta property="og:type" content="article" />
         <meta property="og:site_name" content="Naija Daily" />
         {/* Twitter Card Meta Tags */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={newsItem ? newsItem.newsTitle : "Naija Daily"} />
-        <meta name="twitter:description" content={newsItem ? excerpt : "Nigeria's most comprehensive and trusted online newspaper."} />
-        <meta name="twitter:image" content={newsItem ? newsItem.newsImage : "https://naijadaily.ng/default-image.jpg"} />
-        <meta name="twitter:image:alt" content={newsItem ? newsItem.newsTitle : "Naija Daily"} />
+        <meta
+          name="twitter:title"
+          content={newsItem ? newsItem.newsTitle : "Naija Daily"}
+        />
+        <meta
+          name="twitter:description"
+          content={newsItem ? excerpt : "Nigeria's most comprehensive and trusted online newspaper."}
+        />
+        <meta
+          name="twitter:image"
+          content={newsItem ? newsItem.newsImage : "https://www.naijadaily.ng/default-image.jpg"}
+        />
+        <meta
+          name="twitter:image:alt"
+          content={newsItem ? newsItem.newsTitle : "Naija Daily"}
+        />
         {/* Schema.org Structured Data */}
         {newsItem && (
           <script type="application/ld+json">
@@ -205,7 +227,7 @@ export default function NewsArticlePage() {
                 name: "Naija Daily",
                 logo: {
                   "@type": "ImageObject",
-                  url: "https://naijadaily.ng/ndb.png",
+                  url: "https://www.naijadaily.ng/ndb.png",
                 },
               },
             })}
@@ -213,16 +235,13 @@ export default function NewsArticlePage() {
         )}
       </Head>
 
-      {/* Loading State */}
       {loading && (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
           <main className="container mx-auto px-4 lg:px-8 py-6">
             <div className="flex flex-col lg:flex-row gap-6">
               <div className="w-full lg:w-2/3">
                 <div
-                  className={`${
-                    darkMode ? "bg-gray-800" : "bg-white"
-                  } rounded-lg shadow-md p-6 lg:p-8`}
+                  className={`${darkMode ? "bg-gray-800" : "bg-white"} rounded-lg shadow-md p-6 lg:p-8`}
                 >
                   <div className="w-24 h-6 bg-gray-300 dark:bg-gray-700 rounded-full mb-4 animate-pulse"></div>
                   <div className="w-full h-12 bg-gray-300 dark:bg-gray-700 rounded mb-4 animate-pulse"></div>
@@ -246,25 +265,21 @@ export default function NewsArticlePage() {
         </div>
       )}
 
-      {/* Error State */}
       {error && !loading && (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
           <p className="text-xl font-serif text-red-600">{error}</p>
         </div>
       )}
 
-      {/* Main Content */}
       {!loading && !error && newsItem && (
         <>
-          {/* Header (Reused from DailyPostClone) */}
+          {/* Header */}
           <header
             className={`relative py-1 px-4 lg:px-8 transition-all duration-300 ${
               darkMode
                 ? "bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900"
                 : "bg-gradient-to-r from-white via-gray-50 to-white"
-            } shadow-lg border-b ${
-              darkMode ? "border-gray-700" : "border-gray-200"
-            }`}
+            } shadow-lg border-b ${darkMode ? "border-gray-700" : "border-gray-200"}`}
           >
             <div className="absolute inset-0 opacity-5">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,0,0,0.1),transparent_50%)]"></div>
@@ -319,7 +334,7 @@ export default function NewsArticlePage() {
                       } overflow-hidden`}
                     >
                       <div className="flex items-center">
-                        <div className="p-3 text-gray-400 group-hover:text-red-500 transition-colors duration-300warden300">
+                        <div className="p-3 text-gray-400 group-hover:text-red-500 transition-colors duration-300">
                           <Search size={20} />
                         </div>
                         <input
@@ -338,9 +353,7 @@ export default function NewsArticlePage() {
                 </div>
               </div>
               <nav
-                className={`${
-                  mobileMenuOpen ? "block" : "hidden"
-                } lg:block transition-all duration-300`}
+                className={`${mobileMenuOpen ? "block" : "hidden"} lg:block transition-all duration-300`}
               >
                 <div
                   className={`${
@@ -442,12 +455,9 @@ export default function NewsArticlePage() {
 
           <main className="container mx-auto p-1 lg:px-8 lg:py-6">
             <div className="flex flex-col lg:flex-row gap-6">
-              {/* Article Content */}
               <div className="w-full lg:w-2/3">
                 <article
-                  className={`${
-                    darkMode ? "bg-gray-800" : "bg-white"
-                  } rounded-lg shadow-md p-1 lg:p-8`}
+                  className={`${darkMode ? "bg-gray-800" : "bg-white"} rounded-lg shadow-md p-1 lg:p-8`}
                 >
                   <div className="mb-6">
                     <span className="inline-block px-3 py-1 text-sm font-semibold text-white bg-red-600 rounded-full mb-4">
@@ -513,9 +523,7 @@ export default function NewsArticlePage() {
                 </article>
               </div>
 
-              {/* Sidebar */}
               <div className="w-full lg:w-1/3">
-                {/* Ad Placement */}
                 <div
                   className={`mb-6 p-4 rounded-lg shadow-md text-center ${
                     darkMode ? "bg-gray-800" : "bg-white"
@@ -539,11 +547,8 @@ export default function NewsArticlePage() {
                   </div>
                 </div>
 
-                {/* Subscribe Section */}
                 <section
-                  className={`${
-                    darkMode ? "bg-gray-800" : "bg-white"
-                  } rounded-lg shadow-md p-4`}
+                  className={`${darkMode ? "bg-gray-800" : "bg-white"} rounded-lg shadow-md p-4`}
                 >
                   <h2 className="text-xl font-bold border-b-2 border-red-600 pb-2 mb-4">
                     Subscribe
@@ -575,7 +580,6 @@ export default function NewsArticlePage() {
             </div>
           </main>
 
-          {/* Footer */}
           <footer className={`py-8 ${darkMode ? "bg-gray-800" : "bg-gray-900"} text-white`}>
             <div className="container mx-auto px-4 lg:px-8">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -690,4 +694,34 @@ export default function NewsArticlePage() {
       )}
     </div>
   );
+}
+
+// Add server-side props to pre-render meta tags
+export async function getServerSideProps(context: any) {
+  const { slug } = context.params;
+  try {
+    const response = await fetch("https://news-app-three-lyart.vercel.app/news-app/published");
+    const result = await response.json();
+    if (result.success && result.data) {
+      const article = result.data.find(
+        (item: NewsItem) => generateSlug(item.newsTitle) === slug
+      );
+      if (article) {
+        const newsItem: NewsItem = {
+          ...article,
+          slug: generateSlug(article.newsTitle),
+          createdAt: new Date(article.createdAt).toLocaleDateString("en-US", {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+          }),
+        };
+        return { props: { initialNewsItem: newsItem } };
+      }
+    }
+    return { notFound: true };
+  } catch (error) {
+    console.error("Error fetching article:", error);
+    return { notFound: true };
+  }
 }
