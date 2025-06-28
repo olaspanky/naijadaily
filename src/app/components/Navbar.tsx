@@ -30,46 +30,47 @@ export default function Navbar({
 
   return (
     <header className="bg-white text-gray-800 shadow-md sticky top-0 z-50">
-      <div className=" w-full flex justify-between container mx-auto px-4 lg:px-8 p-2 lg:py-6">
-        {/* Logo and mobile menu */}
-        <div className=" bg-red-400 ">
-          <button
-            className="lg:hidden p-2 text-gray-800 hover:text-gray-600"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-          <Link href="/" className="  ">
-            <Image
-              src={logo}
-              alt="Logo"
-              className="h-8 lg:h-10 w-auto"
-              priority
-            />
-          </Link>
-        </div>
-
-        {/* Nav Items */}
-        <nav className="hidden lg:flex  justify-center space-x-8 items-center text-sm font-semibold uppercase">
-          {categories.map((item) => (
+      <div className="w-full container mx-auto px-4 lg:px-8 py-2 lg:py-6">
+        <div className="flex items-center justify-between">
+          {/* Logo and mobile menu */}
+          <div className="flex items-center space-x-4">
             <button
-              key={item}
-              onClick={() => handleCategoryClick(item)}
-              className={`hover:text-gray-600 transition ${
-                selectedCategory === item ? "text-red-600 font-bold" : ""
-              }`}
+              className="lg:hidden p-2 text-gray-800 hover:text-gray-600"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
-              {item}
+              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
-          ))}
-        </nav>
+            <Link href="/" className="flex items-center">
+              <Image
+                src={logo}
+                alt="Logo"
+                className="h-8 lg:h-10 w-auto"
+                priority
+              />
+            </Link>
+          </div>
 
-        {/* Search and Dark Mode Toggle */}
-        <div className="flex items-center space-x-4">
-          <button className="p-2 text-gray-800 hover:text-gray-600">
-            <Search size={20} />
-          </button>
-        
+          {/* Nav Items */}
+          <nav className="hidden lg:flex space-x-8 items-center text-sm font-semibold uppercase">
+            {categories.map((item) => (
+              <button
+                key={item}
+                onClick={() => handleCategoryClick(item)}
+                className={`hover:text-gray-600 transition ${
+                  selectedCategory === item ? "text-red-600 font-bold" : ""
+                }`}
+              >
+                {item}
+              </button>
+            ))}
+          </nav>
+
+          {/* Search and Dark Mode Toggle */}
+          <div className="flex items-center space-x-4">
+            <button className="p-2 text-gray-800 hover:text-gray-600">
+              <Search size={20} />
+            </button>
+          </div>
         </div>
       </div>
 

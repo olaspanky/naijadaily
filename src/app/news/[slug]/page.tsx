@@ -46,24 +46,8 @@ export default function NewsArticlePage() {
   const router = useRouter();
   const params = useParams();
   const slug = params.slug as string;
-// Update the sanitizedNewsBody to add classes to links
-const sanitizedNewsBody = newsItem 
-  ? DOMPurify.sanitize(newsItem.newsBody, {
-      ADD_ATTR: ['target', 'rel'], // Allow target and rel attributes
-      ADD_TAGS: ['iframe'], // Allow iframes if needed
-      FORBID_TAGS: ['style', 'script'], // For security
-      FORBID_ATTR: ['style', 'onclick'], // For security
-      // Transform function to add classes to links
-      AFTER_SANITIZE_ATTRS: (node) => {
-        if (node.tagName === 'a') {
-          node.setAttribute('class', 'backlink');
-          node.setAttribute('target', '_blank');
-          node.setAttribute('rel', 'noopener noreferrer');
-        }
-        return node;
-      }
-    })
-  : "";
+  const sanitizedNewsBody = newsItem ? DOMPurify.sanitize(newsItem.newsBody) : "";
+
   // Placeholder for share functionality (replace with actual logic)
   const handleShare = () => {
     if (!newsItem) return;
@@ -272,7 +256,7 @@ const sanitizedNewsBody = newsItem
                 priority
               />
             </div>
-<div
+           <div
   className={`prose prose-lg ${
     darkMode ? "prose-invert" : ""
   } max-w-none leading-relaxed 
