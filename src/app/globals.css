@@ -69,3 +69,18 @@ body {
           animation: blink 2s infinite;
           filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
         }
+
+        @keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee 20s linear infinite;
+}

@@ -7,7 +7,7 @@ import logo from "../../../../public/ndb.png";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import DOMPurify from "isomorphic-dompurify"; // For sanitizing HTML
-
+import Navbar from "@/app/components/Navbar";
 
 // Helper function to generate URL-friendly slugs from titles
 const generateSlug = (title: string) => {
@@ -38,9 +38,10 @@ export default function NewsArticlePage() {
   const [darkMode, setDarkMode] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState("");
-  const [categories, setCategories] = useState(["Home"]);
   const [newsItem, setNewsItem] = useState<NewsItem | null>(null);
   const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState(["Home"]);
+  const [selectedCategory, setSelectedCategory] = useState("Home");
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const params = useParams();
@@ -212,189 +213,14 @@ export default function NewsArticlePage() {
       style={{ fontFamily: "'Times New Roman', Times, serif" }}
     >
       {/* Header (Reused from DailyPostClone) */}
-      <header
-        className={`relative py-1 px-4 lg:px-8 transition-all duration-300 ${
-          darkMode
-            ? "bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900"
-            : "bg-gradient-to-r from-white via-gray-50 to-white"
-        } shadow-lg border-b ${
-          darkMode ? "border-gray-700" : "border-gray-200"
-        }`}
-      >
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,0,0,0.1),transparent_50%)]"></div>
-        </div>
-        <div className="container mx-auto relative">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center group">
-              <Link
-                href="/"
-                className="relative overflow-hidden rounded-xl p-2 transition-all duration-300 hover:scale-105 hover:shadow-xl"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-red-600 opacity-0 group-hover:opacity-10 transition-opacity duration-300 rounded-xl"></div>
-                <Image
-                  alt="Logo"
-                  src={logo}
-                  className="w-auto h-9 lg:h-20 relative z-10 transition-all duration-300 group-hover:brightness-110"
-                />
-              </Link>
-            </div>
-            <div className="flex items-center space-x-2">
-              <button
-                className={`p-3 lg:hidden rounded-xl transition-all duration-300 hover:scale-110 ${
-                  darkMode
-                    ? "bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white"
-                    : "bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800"
-                } shadow-md hover:shadow-lg`}
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              >
-                <div className="relative w-6 h-6">
-                  <div
-                    className={`absolute inset-0 transition-all duration-300 ${
-                      mobileMenuOpen ? "rotate-180 opacity-0" : "rotate-0 opacity-100"
-                    }`}
-                  >
-                    <Menu size={24} />
-                  </div>
-                  <div
-                    className={`absolute inset-0 transition-all duration-300 ${
-                      mobileMenuOpen ? "rotate-0 opacity-100" : "rotate-180 opacity-0"
-                    }`}
-                  >
-                    <X size={24} />
-                  </div>
-                </div>
-              </button>
-              <div className="hidden lg:flex items-center">
-                <div
-                  className={`relative group ${
-                    darkMode ? "bg-gray-700" : "bg-white"
-                  } rounded-full shadow-lg hover:shadow-xl transition-all duration-300 border ${
-                    darkMode ? "border-gray-600" : "border-gray-200"
-                  } overflow-hidden`}
-                >
-                  <div className="flex items-center">
-                    <div className="p-3 text-gray-400 group-hover:text-red-500 transition-colors duration-300">
-                      <Search size={20} />
-                    </div>
-                    <input
-                      type="text"
-                      placeholder="Search news..."
-                      className={`py-3 pr-4 bg-transparent focus:outline-none transition-all duration-300 ${
-                        darkMode
-                          ? "text-white placeholder-gray-400"
-                          : "text-gray-800 placeholder-gray-500"
-                      } w-48 focus:w-64`}
-                    />
-                  </div>
-                  <div className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-red-500 to-red-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left w-full"></div>
-                </div>
-              </div>
-              
-            </div>
-          </div>
-          <nav
-            className={`${
-              mobileMenuOpen ? "block" : "hidden"
-            } lg:block transition-all duration-300`}
-          >
-            <div
-              className={`${
-                mobileMenuOpen
-                  ? `p-4 rounded-xl mt-2 ${
-                      darkMode ? "bg-gray-800/50" : "bg-gray-50/50"
-                    } backdrop-blur-sm border ${
-                      darkMode ? "border-gray-700" : "border-gray-200"
-                    }`
-                  : ""
-              }`}
-            >
-              <ul className="flex flex-col lg:flex-row lg:justify-center lg:space-x-8 space-y-3 lg:space-y-0">
-                {categories.map((category, index) => (
-                  <li key={index} className="relative group">
-                    <Link
-                      href={category === "Home" ? "/" : `/category/${generateSlug(category)}`}
-                      className={`relative block px-4 py-2 lg:py-3 font-semibold text-lg transition-all duration-300 rounded-lg lg:rounded-none hover:scale-105 ${
-                        index === 0
-                          ? "text-red-600 bg-red-50 lg:bg-transparent"
-                          : `${
-                              darkMode
-                                ? "text-gray-300 hover:text-white hover:bg-gray-700/50"
-                                : "text-gray-700 hover:text-gray-900 hover:bg-gray-100/50"
-                            }`
-                      } lg:hover:bg-transparent`}
-                    >
-                      {category}
-                      <div
-                        className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 h-0.5 bg-gradient-to-r from-red-500 to-red-600 transition-all duration-300 ${
-                          index === 0 ? "w-full lg:w-6" : "w-0 group-hover:w-6"
-                        } hidden lg:block`}
-                      ></div>
-                    </Link>
-                  </li>
-                ))}
-                <li className="relative group">
-                  <Link
-                    href="#"
-                    className={`flex items-center px-4 py-2 lg:py-3 font-semibold text-lg transition-all duration-300 rounded-lg lg:rounded-none hover:scale-105 ${
-                      darkMode
-                        ? "text-gray-300 hover:text-white hover:bg-gray-700/50"
-                        : "text-gray-700 hover:text-gray-900 hover:bg-gray-100/50"
-                    } lg:hover:bg-transparent`}
-                  >
-                    More
-                    <ChevronDown
-                      size={16}
-                      className="ml-2 transition-transform duration-300 group-hover:rotate-180"
-                    />
-                    <div
-                      className="absolute bottom-0 left-1/2 transform -translate-x-1/2 h-0.5 bg-gradient-to-r from-red-500 to-red-600 w-0 group-hover:w-6 transition-all duration-300 hidden lg:block"
-                    ></div>
-                  </Link>
-                  <div
-                    className={`absolute left-0 lg:left-1/2 lg:transform lg:-translate-x-1/2 mt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-20 ${
-                      mobileMenuOpen ? "relative mt-2 opacity-100 visible" : ""
-                    }`}
-                  >
-                    <div
-                      className={`w-56 py-3 rounded-xl shadow-2xl border backdrop-blur-sm ${
-                        darkMode
-                          ? "bg-gray-800/95 border-gray-700"
-                          : "bg-white/95 border-gray-200"
-                      }`}
-                    >
-                      <div
-                        className={`absolute -top-2 left-1/2 transform -translate-x-1/2 w-4 h-4 rotate-45 ${
-                          darkMode ? "bg-gray-800" : "bg-white"
-                        } border-l border-t ${
-                          darkMode ? "border-gray-700" : "border-gray-200"
-                        } hidden lg:block`}
-                      ></div>
-                      <ul className="space-y-1">
-                        {["Opinion", "Health", "Technology"].map((item, idx) => (
-                          <li key={idx}>
-                            <Link
-                              href={`/category/${item.toLowerCase()}`}
-                              className={`flex items-center px-4 py-3 transition-all duration-300 hover:scale-105 ${
-                                darkMode
-                                  ? "text-gray-300 hover:text-white hover:bg-red-600/80"
-                                  : "text-gray-700 hover:text-white hover:bg-red-600"
-                              } font-medium group/item`}
-                            >
-                              <div className="w-2 h-2 rounded-full bg-red-500 mr-3 transform scale-0 group-hover/item:scale-100 transition-transform duration-300"></div>
-                              {item}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                </li>
-              </ul>
-            </div>
-          </nav>
-        </div>
-      </header>
+     <div>
+ <Navbar
+        categories={categories}
+        selectedCategory={selectedCategory}
+        setSelectedCategory={setSelectedCategory}
+        darkMode={darkMode}
+        toggleDarkMode={toggleDarkMode}
+      />     </div>
 
       {/* Main Content */}
    <main className="container mx-auto p-1 lg:px-8 lg:py-6">
