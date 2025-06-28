@@ -696,32 +696,3 @@ export default function NewsArticlePage({ initialNewsItem }: { initialNewsItem?:
   );
 }
 
-// Add server-side props to pre-render meta tags
-export async function getServerSideProps(context: any) {
-  const { slug } = context.params;
-  try {
-    const response = await fetch("https://news-app-three-lyart.vercel.app/news-app/published");
-    const result = await response.json();
-    if (result.success && result.data) {
-      const article = result.data.find(
-        (item: NewsItem) => generateSlug(item.newsTitle) === slug
-      );
-      if (article) {
-        const newsItem: NewsItem = {
-          ...article,
-          slug: generateSlug(article.newsTitle),
-          createdAt: new Date(article.createdAt).toLocaleDateString("en-US", {
-            month: "long",
-            day: "numeric",
-            year: "numeric",
-          }),
-        };
-        return { props: { initialNewsItem: newsItem } };
-      }
-    }
-    return { notFound: true };
-  } catch (error) {
-    console.error("Error fetching article:", error);
-    return { notFound: true };
-  }
-}
