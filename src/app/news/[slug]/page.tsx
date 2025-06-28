@@ -46,8 +46,24 @@ export default function NewsArticlePage() {
   const router = useRouter();
   const params = useParams();
   const slug = params.slug as string;
-  const sanitizedNewsBody = newsItem ? DOMPurify.sanitize(newsItem.newsBody) : "";
-
+// Update the sanitizedNewsBody to add classes to links
+const sanitizedNewsBody = newsItem 
+  ? DOMPurify.sanitize(newsItem.newsBody, {
+      ADD_ATTR: ['target', 'rel'], // Allow target and rel attributes
+      ADD_TAGS: ['iframe'], // Allow iframes if needed
+      FORBID_TAGS: ['style', 'script'], // For security
+      FORBID_ATTR: ['style', 'onclick'], // For security
+      // Transform function to add classes to links
+      AFTER_SANITIZE_ATTRS: (node) => {
+        if (node.tagName === 'a') {
+          node.setAttribute('class', 'backlink');
+          node.setAttribute('target', '_blank');
+          node.setAttribute('rel', 'noopener noreferrer');
+        }
+        return node;
+      }
+    })
+  : "";
   // Placeholder for share functionality (replace with actual logic)
   const handleShare = () => {
     if (!newsItem) return;
@@ -256,19 +272,19 @@ export default function NewsArticlePage() {
                 priority
               />
             </div>
-            <div
-              className={`prose prose-lg ${
-                darkMode ? "prose-invert" : ""
-              } max-w-none leading-relaxed 
-                [&>p]:mb-6 [&>h1]:mb-6 [&>h1]:mt-8
-                [&>h2]:mb-5 [&>h2]:mt-7 [&>h3]:mb-4 [&>h3]:mt-6
-                [&>h4]:mb-4 [&>h4]:mt-5 [&>h5]:mb-3 [&>h5]:mt-4
-                [&>h6]:mb-3 [&>h6]:mt-4 [&>ul]:mb-6 [&>ol]:mb-6 
-                [&>li]:mb-2 [&>blockquote]:mb-6 [&>blockquote]:mt-6
-                [&>pre]:mb-6 [&>pre]:mt-6 [&>table]:mb-6 [&>table]:mt-6
-                [&>hr]:mb-8 [&>hr]:mt-8`}
-              dangerouslySetInnerHTML={{ __html: sanitizedNewsBody }}
-            />
+<div
+  className={`prose prose-lg ${
+    darkMode ? "prose-invert" : ""
+  } max-w-none leading-relaxed 
+    [&>p]:mb-6 [&>h1]:mb-6 [&>h1]:mt-8
+    [&>h2]:mb-5 [&>h2]:mt-7 [&>h3]:mb-4 [&>h3]:mt-6
+    [&>h4]:mb-4 [&>h4]:mt-5 [&>h5]:mb-3 [&>h5]:mt-4
+    [&>h6]:mb-3 [&>h6]:mt-4 [&>ul]:mb-6 [&>ol]:mb-6 
+    [&>li]:mb-2 [&>blockquote]:mb-6 [&>blockquote]:mt-6
+    [&>pre]:mb-6 [&>pre]:mt-6 [&>table]:mb-6 [&>table]:mt-6
+    [&>hr]:mb-8 [&>hr]:mt-8`}
+  dangerouslySetInnerHTML={{ __html: sanitizedNewsBody }}
+/>
             <div className="mt-8 flex justify-between items-center">
               <Link
                 href="/"

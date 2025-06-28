@@ -84,3 +84,22 @@ body {
 .animate-marquee {
   animation: marquee 20s linear infinite;
 }
+
+.prose a {
+  color: #dc2626; /* Tailwind red-600 */
+  text-decoration: underline;
+  font-weight: 600;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+.prose a:hover {
+  color: #b91c1c; /* Tailwind red-800 */
+  background-color: rgba(220, 38, 38, 0.1); /* Light red background on hover */
+  text-decoration: underline;
+}
+.dark .prose a {
+  color: #f87171; /* Tailwind red-400 for dark mode */
+}
+.dark .prose a:hover {
+  color: #ef4444; /* Tailwind red-500 */
+  background-color: rgba(248, 113, 113, 0.1);
+}
