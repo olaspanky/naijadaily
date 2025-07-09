@@ -52,9 +52,9 @@ export default function Navbar({
 
           {/* Nav Items */}
           <nav className="hidden lg:flex space-x-8 items-center text-sm font-semibold uppercase">
-            {categories.map((item) => (
+            {categories.map((item, index) => (
               <button
-                key={item}
+                key={`${item}-${index}`} // Unique key using index
                 onClick={() => handleCategoryClick(item)}
                 className={`hover:text-gray-600 transition ${
                   selectedCategory === item ? "text-red-600 font-bold" : ""
@@ -70,6 +70,12 @@ export default function Navbar({
             <button className="p-2 text-gray-800 hover:text-gray-600">
               <Search size={20} />
             </button>
+            <button
+              className="p-2 text-gray-800 hover:text-gray-600"
+              onClick={toggleDarkMode}
+            >
+              {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
           </div>
         </div>
       </div>
@@ -77,9 +83,9 @@ export default function Navbar({
       {/* Mobile nav */}
       {mobileMenuOpen && (
         <div className="lg:hidden bg-white px-4 py-4 space-y-2 text-gray-800 font-semibold border-t border-gray-200">
-          {categories.map((item) => (
+          {categories.map((item, index) => (
             <button
-              key={item}
+              key={`${item}-${index}`} // Unique key using index
               onClick={() => handleCategoryClick(item)}
               className={`block w-full text-left hover:text-gray-600 ${
                 selectedCategory === item ? "text-red-600 font-bold" : ""

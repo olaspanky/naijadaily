@@ -56,22 +56,22 @@ export default function CategoryPage() {
   }, []);
 
   // Fetch categories
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await fetch("https://news-app-three-lyart.vercel.app/news-app-category");
-        const result = await response.json();
-        if (result.success && result.data) {
-          const categoryNames = result.data.map((item: { categoryName: string }) => item.categoryName);
-          setCategories(["Home", ...categoryNames]);
-        }
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-        setCategories(["Home"]);
+useEffect(() => {
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch("https://news-app-three-lyart.vercel.app/news-app-category");
+      const result = await response.json();
+      if (result.success && result.data) {
+        const categoryNames = result.data.map((item: { categoryName: string }) => item.categoryName);
+        setCategories(["Home", ...categoryNames]);
       }
-    };
-    fetchCategories();
-  }, []);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      setCategories(["Home"]);
+    }
+  };
+  fetchCategories();
+}, []);
 
   // Fetch news articles by category
   useEffect(() => {

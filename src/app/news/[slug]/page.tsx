@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { Menu, Search, X, ChevronDown, Sun, Moon } from "lucide-react";
 import Image from "next/image";
-import Head from "next/head";
 import Link from "next/link";
 import DOMPurify from "isomorphic-dompurify";
 import Navbar from "@/app/components/Navbar";
@@ -54,6 +53,55 @@ export default function NewsArticlePage() {
   const { slug } = params;
   const sanitizedNewsBody = newsItem ? DOMPurify.sanitize(newsItem.newsBody) : "";
 
+  // Update document head with meta tags when newsItem changes
+  // Remove your current useEffect for metadata and replace with:
+
+useEffect(() => {
+  if (!newsItem) return;
+  
+  // Update title
+  document.title = newsItem.newsTitle;
+  
+  // Update meta tags
+  const setMetaTag = (name: string, content: string) => {
+    let tag = document.querySelector(`meta[name="${name}"]`);
+    if (!tag) {
+      tag = document.createElement('meta');
+      tag.setAttribute('name', name);
+      document.head.appendChild(tag);
+    }
+    tag.setAttribute('content', content);
+  };
+
+  const setOgTag = (property: string, content: string) => {
+    let tag = document.querySelector(`meta[property="${property}"]`);
+    if (!tag) {
+      tag = document.createElement('meta');
+      tag.setAttribute('property', property);
+      document.head.appendChild(tag);
+    }
+    tag.setAttribute('content', content);
+  };
+
+  setMetaTag('description', newsItem.newsBody.substring(0, 160));
+  
+  const imageUrl = newsItem.newsImage?.startsWith("http")
+    ? newsItem.newsImage
+    : `https://naijadaily.ng${newsItem.newsImage || "/default-image.jpg"}`;
+
+  // Open Graph tags
+  setOgTag('og:title', newsItem.newsTitle);
+  setOgTag('og:description', newsItem.newsBody.substring(0, 160));
+  setOgTag('og:image', imageUrl);
+  setOgTag('og:url', window.location.href);
+  setOgTag('og:type', 'article');
+
+  // Twitter tags
+  setMetaTag('twitter:card', 'summary_large_image');
+  setMetaTag('twitter:title', newsItem.newsTitle);
+  setMetaTag('twitter:description', newsItem.newsBody.substring(0, 160));
+  setMetaTag('twitter:image', imageUrl);
+}, [newsItem]);
   useEffect(() => {
     if (!slug) return;
 
@@ -180,7 +228,7 @@ export default function NewsArticlePage() {
 
   if (error || !newsItem) {
     return (
-     <div className="flex items-center justify-center py-8">
+     <div className="flex items-center justify-center py-8 bg-white h-screen">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mr-3"></div>
                 <p className="text-gray-600">Loading latest news...</p>
               </div>
@@ -194,28 +242,6 @@ export default function NewsArticlePage() {
       }`}
       style={{ fontFamily: "'Times New Roman', Times, serif" }}
     >
-      <Head>
-        <title>{newsItem.newsTitle}</title>
-        <meta name="description" content={newsItem.newsBody.substring(0, 160)} />
-        <meta property="og:title" content={newsItem.newsTitle.substring(0, 70)} />
-        <meta property="og:description" content={newsItem.newsBody.substring(0, 160)} />
-        <meta property="og:image" content={imageUrl} />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta property="og:image:alt" content={`Featured image for ${newsItem.newsTitle}`} />
-        <meta property="og:url" content={`https://naijadaily.ng/${newsItem.slug}`} />
-        <meta property="og:type" content="article" />
-        <meta property="og:site_name" content="Naija Daily" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={newsItem.newsTitle.substring(0, 70)} />
-        <meta name="twitter:description" content={newsItem.newsBody.substring(0, 160)} />
-        <meta name="twitter:image" content={imageUrl} />
-        <meta name="twitter:image:alt" content={`Featured image for ${newsItem.newsTitle}`} />
-        <meta name="twitter:site" content="@NaijaDaily" />
-        <meta name="twitter:creator" content={newsItem.createdBy} />
-        <link rel="canonical" href={`https://naijadaily.ng/${newsItem.slug}`} />
-      </Head>
-
       <Navbar
         categories={categories}
         selectedCategory={selectedCategory}
@@ -243,7 +269,6 @@ export default function NewsArticlePage() {
                   <span>
                     By {newsItem.createdBy} • {newsItem.createdAt}
                   </span>
-                  <span>{newsItem.views} views</span>
                 </div>
                 <Image
                   src={imageUrl}
@@ -461,6 +486,8 @@ export default function NewsArticlePage() {
           </div>
         </div>
       </main>
+
+
 
       <footer className={`py-8 ${darkMode ? "bg-gray-800" : "bg-gray-900"} text-white`}>
         <div className="container mx-auto px-4 lg:px-8">
