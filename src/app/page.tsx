@@ -5,7 +5,8 @@ import { ChevronDown } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import Navbar from "../app/components/Navbar"; // Adjust path as needed
-
+import logo from "../../public/ndb.png"
+import Head from "next/head";
 // Helper function to generate URL-friendly slugs from titles
 const generateSlug = (title: string) => {
   return title
@@ -22,6 +23,10 @@ export default function DailyPostClone() {
   const [selectedCategory, setSelectedCategory] = useState("Home");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(6); // Default items per page
+  const defaultTitle = "Naija Daily - Latest Nigerian News";
+const defaultDescription = "Stay updated with the latest news from Nigeria in politics, business, entertainment, sports, and more.";
+  const defaultImage = "https://naijadaily.ng/public/ndb.png"; // Use absolute URL
+
 
   interface NewsItem {
     id: string;
@@ -190,6 +195,65 @@ export default function DailyPostClone() {
 
     return (
       <div className="flex flex-col sm:flex-row justify-between items-center mt-6 space-y-4 sm:space-y-0">
+        <Head>
+  <title>{featuredNews.length > 0 ? `${featuredNews[0].title.substring(0, 60)} | Naija Daily` : defaultTitle}</title>
+  <meta
+    name="description"
+    content={featuredNews.length > 0 ? featuredNews[0].excerpt.substring(0, 160) : defaultDescription}
+  />
+  {/* Open Graph Tags */}
+  <meta
+    property="og:title"
+    content={featuredNews.length > 0 ? featuredNews[0].title.substring(0, 60) : defaultTitle}
+  />
+  <meta
+    property="og:description"
+    content={featuredNews.length > 0 ? featuredNews[0].excerpt.substring(0, 160) : defaultDescription}
+  />
+  <meta
+    property="og:image"
+    content={featuredNews.length > 0 ? featuredNews[0].image : defaultImage}
+  />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta
+    property="og:image:alt"
+    content={featuredNews.length > 0 ? `Featured image for ${featuredNews[0].title}` : "Naija Daily logo"}
+  />
+  <meta property="og:image:type" content="image/jpeg" />
+  <meta property="og:url" content="https://naijadaily.ng" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Naija Daily" />
+  {/* Twitter Card Tags */}
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta
+    name="twitter:title"
+    content={featuredNews.length > 0 ? featuredNews[0].title.substring(0, 60) : defaultTitle}
+  />
+  <meta
+    name="twitter:description"
+    content={featuredNews.length > 0 ? featuredNews[0].excerpt.substring(0, 160) : defaultDescription}
+  />
+  <meta
+    name="twitter:image"
+    content={featuredNews.length > 0 ? featuredNews[0].image : defaultImage}
+  />
+  <meta
+    name="twitter:image:alt"
+    content={featuredNews.length > 0 ? `Featured image for ${featuredNews[0].title}` : "Naija Daily logo"}
+  />
+  <meta name="twitter:site" content="@NaijaDaily" />
+  {/* Apple-Specific Tags */}
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+  <link rel="icon" href="/favicon.ico" />
+  <meta
+    name="apple-mobile-web-app-title"
+    content={featuredNews.length > 0 ? featuredNews[0].title.substring(0, 60) : defaultTitle}
+  />
+  <link rel="canonical" href="https://naijadaily.ng" />
+</Head>
+
+
         {/* Items per page dropdown */}
         <div className="flex items-center space-x-2">
           <label htmlFor="itemsPerPage" className="text-sm">
