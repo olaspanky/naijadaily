@@ -29,6 +29,20 @@ interface NewsItem {
   views: number;
 }
 
+// Utility function to strip HTML tags and clean text
+const stripHtmlTags = (html: string) => {
+  return html
+    .replace(/<[^>]*>/g, '') // Remove HTML tags
+    .replace(/&nbsp;/g, ' ') // Replace &nbsp; with space
+    .replace(/&amp;/g, '&') // Replace &amp; with &
+    .replace(/&lt;/g, '<') // Replace &lt; with <
+    .replace(/&gt;/g, '>') // Replace &gt; with >
+    .replace(/&quot;/g, '"') // Replace &quot; with "
+    .replace(/&#39;/g, "'") // Replace &#39; with '
+    .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+    .trim(); // Remove leading/trailing whitespace
+};
+
 // Generate metadata for social media sharing
 export async function generateMetadata(
   { params }: Props,
@@ -60,27 +74,39 @@ export async function generateMetadata(
       ? article.newsImage
       : `https://naijadaily.ng${article.newsImage || "/default-image.jpg"}`;
 
+    // Clean description by removing HTML tags
+    const cleanDescription = stripHtmlTags(article.newsBody).substring(0, 160);
+
     return {
-      title: article.newsTitle,
-      description: article.newsBody.substring(0, 160),
+      title: `${article.newsTitle} - Naija Daily`,
+      description: cleanDescription,
       openGraph: {
         title: article.newsTitle,
-        description: article.newsBody.substring(0, 160),
-        images: [imageUrl],
+        description: cleanDescription,
+        images: [
+          {
+            url: imageUrl,
+            width: 800,
+            height: 400,
+            alt: article.newsTitle,
+          }
+        ],
         url: `https://naijadaily.ng/news/${slug}`,
         type: "article",
+        siteName: "Naija Daily",
       },
       twitter: {
         card: "summary_large_image",
         title: article.newsTitle,
-        description: article.newsBody.substring(0, 160),
+        description: cleanDescription,
         images: [imageUrl],
+        site: "@naijadaily",
       },
     };
   } catch (error) {
     console.error("Metadata error:", error);
     return {
-      title: "Error",
+      title: "Error - Naija Daily",
       description: "An error occurred while fetching the article.",
     };
   }
@@ -93,6 +119,8 @@ export default async function NewsArticlePage({ params }: Props) {
 
   // Fetch article data
   let article: NewsItem | null = null;
+  let allArticles: NewsItem[] = [];
+  
   try {
     const response = await fetch(
       "https://news-app-three-lyart.vercel.app/news-app/published",
@@ -101,7 +129,8 @@ export default async function NewsArticlePage({ params }: Props) {
     if (!response.ok) throw new Error("Failed to fetch article");
 
     const result = await response.json();
-    article = result.data?.find(
+    allArticles = result.data || [];
+    article = allArticles.find(
       (item: NewsItem) => generateSlug(item.newsTitle) === slug
     );
   } catch (error) {
@@ -131,6 +160,23 @@ export default async function NewsArticlePage({ params }: Props) {
     : `https://naijadaily.ng${newsItem.newsImage || "/default-image.jpg"}`;
 
   const sanitizedNewsBody = DOMPurify.sanitize(newsItem.newsBody);
+
+  // Get similar posts (same category, excluding current article)
+  const similarPosts = allArticles
+    .filter(item => 
+      item.category === newsItem.category && 
+      item._id !== newsItem._id
+    )
+    .slice(0, 3)
+    .map(item => ({
+      ...item,
+      slug: generateSlug(item.newsTitle),
+      createdAt: new Date(item.createdAt).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }),
+    }));
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
@@ -169,6 +215,55 @@ export default async function NewsArticlePage({ params }: Props) {
             className="prose max-w-none"
             dangerouslySetInnerHTML={{ __html: sanitizedNewsBody }}
           />
+          
+          {/* Similar Posts Section */}
+          {similarPosts.length > 0 && (
+            <div className="mt-12 border-t pt-8">
+              <h3 className="text-xl font-bold mb-6 text-gray-800">
+                Similar Posts in {newsItem.category}
+              </h3>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {similarPosts.map((post) => {
+                  const postImageUrl = post.newsImage?.startsWith("http")
+                    ? post.newsImage
+                    : `https://naijadaily.ng${post.newsImage || "/default-image.jpg"}`;
+                  
+                  return (
+                    <Link
+                      key={post._id}
+                      href={`/news/${post.slug}`}
+                      className="group block bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden border border-gray-200"
+                    >
+                      <div className="aspect-video overflow-hidden">
+                        <Image
+                          src={postImageUrl}
+                          alt={post.newsTitle}
+                          width={300}
+                          height={200}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                        />
+                      </div>
+                      <div className="p-4">
+                        <span className="inline-block px-2 py-1 text-xs font-semibold text-white bg-red-600 rounded-full mb-2">
+                          {post.category}
+                        </span>
+                        <h4 className="font-semibold text-gray-800 group-hover:text-red-600 transition-colors line-clamp-2 mb-2">
+                          {post.newsTitle}
+                        </h4>
+                        <p className="text-sm text-gray-500 mb-2">
+                          {stripHtmlTags(post.newsBody).substring(0, 100)}...
+                        </p>
+                        <div className="text-xs text-gray-400">
+                          By {post.createdBy} • {post.createdAt}
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          
           <div className="mt-8">
             <Link href="/" className="text-red-600 hover:underline">
               ← Back to Home
