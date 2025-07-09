@@ -7,14 +7,16 @@ interface PageProps {
   };
 }
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata>{
-  const { slug } = await params;  // First await the params if needed (though usually params is available synchronously)
+export async function generateMetadata(
+  { params }: { params: { slug: string } }
+): Promise<Metadata> {
+  const { slug } = params;
 
   try {
     const res = await fetch(`https://news-app-three-lyart.vercel.app/news-app/published?slug=${slug}`, {
       next: { revalidate: 3600 }
     });
-    
+
     if (!res.ok) throw new Error("Failed to fetch article");
     const article = await res.json();
 
@@ -37,7 +39,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
       },
       openGraph: {
         title: article.newsTitle,
-        description: article.newsBody?.substring(0, 160) || "Read the latest news on Naija Daily",
+        description: article.newsBody?.substring(0, 160),
         url: `https://naijadaily.ng/news/${slug}`,
         type: "article",
         publishedTime: article.createdAt,
@@ -54,7 +56,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
       twitter: {
         card: "summary_large_image",
         title: article.newsTitle,
-        description: article.newsBody?.substring(0, 160) || "Read the latest news on Naija Daily",
+        description: article.newsBody?.substring(0, 160),
         images: [imageUrl],
       },
     };
@@ -67,5 +69,5 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 }
 
 export default function NewsArticlePage({ params }: PageProps) {
-  return <NewsArticleClient  />;
+  return <NewsArticleClient />;
 }
