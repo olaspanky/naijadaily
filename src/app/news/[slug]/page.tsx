@@ -1,12 +1,14 @@
-import { GetServerSideProps } from "next";
-import { useState , useEffect} from "react";
+"use client";
+
+import { useState, useEffect } from "react";
 import { Menu, Search, X, ChevronDown, Sun, Moon } from "lucide-react";
 import Image from "next/image";
 import Head from "next/head";
-import logo from "../../../../public/ndb.png";
 import Link from "next/link";
 import DOMPurify from "isomorphic-dompurify";
 import Navbar from "@/app/components/Navbar";
+import { useRouter } from "next/navigation"; // For accessing slug
+import { useParams } from "next/navigation";
 
 const generateSlug = (title: string) => {
   return title
@@ -27,19 +29,125 @@ interface NewsItem {
   views: number;
 }
 
-interface Props {
-  newsItem: NewsItem | null;
-  categories: string[];
-  error?: string;
+interface Pagination {
+  currentPage: number;
+  totalPages: number;
+  limit: number;
 }
 
-export default function NewsArticlePage({ newsItem, categories, error }: Props) {
+export default function NewsArticlePage() {
   const [darkMode, setDarkMode] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Home");
+  const [newsItem, setNewsItem] = useState<NewsItem | null>(null);
+  const [categories, setCategories] = useState<string[]>(["Home"]);
+  const [error, setError] = useState<string | null>(null);
+  const [relatedArticles, setRelatedArticles] = useState<NewsItem[]>([]);
+  const [pagination, setPagination] = useState<Pagination>({
+    currentPage: 1,
+    totalPages: 1,
+    limit: 3, // Show 3 related articles per page
+  });
+  const router = useRouter();
+  const params = useParams();
+  const slug = params.slug as string; // Type assertion since params can be string | string[]
 
   const sanitizedNewsBody = newsItem ? DOMPurify.sanitize(newsItem.newsBody) : "";
+
+  // Fetch article and categories
+  useEffect(() => {
+    if (!slug) return;
+
+    const fetchData = async () => {
+      try {
+        // Fetch article
+        const response = await fetch("https://news-app-three-lyart.vercel.app/news-app/published");
+        const result = await response.json();
+        if (result.success && result.data) {
+          const article = result.data.find(
+            (item: NewsItem) => generateSlug(item.newsTitle) === slug
+          );
+          if (article) {
+            const newsItemData: NewsItem = {
+              ...article,
+              slug: generateSlug(article.newsTitle),
+              createdAt: new Date(article.createdAt).toLocaleDateString("en-US", {
+                month: "long",
+                day: "numeric",
+                year: "numeric",
+              }),
+            };
+            setNewsItem(newsItemData);
+
+            // Record view
+            const viewResponse = await fetch(
+              `https://news-app-three-lyart.vercel.app/news-app/news-view/${article._id}`,
+              { method: "POST" }
+            );
+            const viewResult = await viewResponse.json();
+            if (viewResult.success) {
+              setNewsItem((prev) => (prev ? { ...prev, views: viewResult.views } : prev));
+            }
+
+            // Fetch related articles (same category, paginated)
+            const relatedResponse = await fetch(
+              `https://news-app-three-lyart.vercel.app/news-app/published?category=${article.category}&page=${pagination.currentPage}&limit=${pagination.limit}`
+            );
+            const relatedResult = await relatedResponse.json();
+            if (relatedResult.success && relatedResult.data) {
+              setRelatedArticles(
+                relatedResult.data
+                  .filter((item: NewsItem) => item._id !== article._id)
+                  .map((item: NewsItem) => ({
+                    ...item,
+                    slug: generateSlug(item.newsTitle),
+                    createdAt: new Date(item.createdAt).toLocaleDateString("en-US", {
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric",
+                    }),
+                  }))
+              );
+              setPagination((prev) => ({
+                ...prev,
+                totalPages: Math.ceil(relatedResult.total / pagination.limit),
+              }));
+            }
+          } else {
+            setError("Article not found");
+          }
+        } else {
+          setError("Failed to fetch article");
+        }
+
+        // Fetch categories
+        const categoryResponse = await fetch("https://news-app-three-lyart.vercel.app/news-app-category");
+        const categoryResult = await categoryResponse.json();
+        if (categoryResult.success && categoryResult.data) {
+          setCategories(["Home", ...categoryResult.data.map((item: { categoryName: string }) => item.categoryName)]);
+        }
+      } catch (err) {
+        setError("Error loading article");
+        console.error("Client-side error:", err);
+      }
+    };
+
+    fetchData();
+  }, [slug, pagination.currentPage]);
+
+  // Set current date
+  useEffect(() => {
+    const date = new Date();
+    setCurrentDate(
+      date.toLocaleDateString("en-US", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    );
+  }, []);
 
   const handleShare = (platform?: string) => {
     if (!newsItem) return;
@@ -69,19 +177,6 @@ export default function NewsArticlePage({ newsItem, categories, error }: Props) 
     console.log("Subscribe clicked");
   };
 
-  // Set current date
-  useEffect(() => {
-    const date = new Date();
-    setCurrentDate(
-      date.toLocaleDateString("en-US", {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      })
-    );
-  }, []);
-
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
   };
@@ -105,24 +200,35 @@ export default function NewsArticlePage({ newsItem, categories, error }: Props) 
       }`}
       style={{ fontFamily: "'Times New Roman', Times, serif" }}
     >
-      <Head>
-        <title>{newsItem.newsTitle}</title>
-        <meta name="description" content={newsItem.newsBody.substring(0, 160)} />
-        <meta property="og:title" content={newsItem.newsTitle} />
-        <meta property="og:description" content={newsItem.newsBody.substring(0, 160)} />
-        <meta property="og:image" content={imageUrl} />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta property="og:url" content={`https://naijadaily.ng/${newsItem.slug}`} />
-        <meta property="og:type" content="article" />
-        <meta property="og:site_name" content="Naija Daily" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={newsItem.newsTitle} />
-        <meta name="twitter:description" content={newsItem.newsBody.substring(0, 160)} />
-        <meta name="twitter:image" content={imageUrl} />
-        <meta name="twitter:site" content="@NaijaDaily" />
-        <link rel="canonical" href={`https://naijadaily.ng/${newsItem.slug}`} />
-      </Head>
+<Head>
+  <title>{newsItem.newsTitle.substring(0, 60)}</title> {/* Short, specific title */}
+  <meta name="description" content={newsItem.newsBody.substring(0, 160)} />
+  {/* Open Graph Tags */}
+  <meta property="og:title" content={newsItem.newsTitle.substring(0, 60)} /> {/* Short, specific, no site branding */}
+  <meta property="og:description" content={newsItem.newsBody.substring(0, 160)} /> {/* Concise description */}
+  <meta property="og:image" content={imageUrl} /> {/* High-quality image, at least 1200x630 */}
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content={`Featured image for ${newsItem.newsTitle}`} /> {/* Descriptive alt text */}
+  <meta property="og:image:type" content="image/jpeg" /> {/* Specify image type, adjust if PNG */}
+  <meta property="og:url" content={`https://naijadaily.ng/${newsItem.slug}`} />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Naija Daily" /> {/* Site name, not in og:title */}
+  {/* Twitter Card Tags */}
+  <meta name="twitter:card" content="summary_large_image" /> {/* Large image for rich previews */}
+  <meta name="twitter:title" content={newsItem.newsTitle.substring(0, 60)} />
+  <meta name="twitter:description" content={newsItem.newsBody.substring(0, 160)} />
+  <meta name="twitter:image" content={imageUrl} />
+  <meta name="twitter:image:alt" content={`Featured image for ${newsItem.newsTitle}`} />
+  <meta name="twitter:site" content="@NaijaDaily" />
+  <meta name="twitter:creator" content={newsItem.createdBy} /> {/* Credit author */}
+  {/* Apple-Specific Tags for Messages */}
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" /> {/* High-res icon for Messages */}
+  <link rel="icon" href="/favicon.ico" /> {/* Fallback favicon */}
+  <meta name="apple-mobile-web-app-title" content={newsItem.newsTitle.substring(0, 60)} /> {/* Optional: App title */}
+  {/* Canonical URL */}
+  <link rel="canonical" href={`https://naijadaily.ng/${newsItem.slug}`} />
+</Head>
 
       <Navbar
         categories={categories}
@@ -236,6 +342,81 @@ export default function NewsArticlePage({ newsItem, categories, error }: Props) 
                 </div>
               </div>
             </article>
+
+            {/* Related Articles Section with Pagination */}
+            <section
+              className={`mt-8 ${darkMode ? "bg-gray-800" : "bg-white"} rounded-lg shadow-md p-4`}
+            >
+              <h2 className="text-xl font-bold border-b-2 border-red-600 pb-2 mb-4">
+                Related Articles
+              </h2>
+              {relatedArticles.length === 0 ? (
+                <p>No related articles found.</p>
+              ) : (
+                <div className="grid grid-cols-1 gap-4">
+                  {relatedArticles.map((article) => (
+                    <Link key={article._id} href={`/${article.slug}`}>
+                      <div className="flex items-center space-x-4">
+                        <Image
+                          src={
+                            article.newsImage?.startsWith("http")
+                              ? article.newsImage
+                              : `https://naijadaily.ng${article.newsImage || "/default-image.jpg"}`
+                          }
+                          alt={article.newsTitle}
+                          width={100}
+                          height={50}
+                          className="rounded object-cover"
+                        />
+                        <div>
+                          <h3 className="text-sm font-semibold">{article.newsTitle}</h3>
+                          <p className="text-xs text-gray-500">
+                            {article.category} • {article.createdAt}
+                          </p>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+              <div className="mt-4 flex justify-between items-center">
+                <button
+                  onClick={() =>
+                    setPagination((prev) => ({
+                      ...prev,
+                      currentPage: Math.max(prev.currentPage - 1, 1),
+                    }))
+                  }
+                  className={`px-4 py-2 rounded ${
+                    pagination.currentPage === 1
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      : "bg-red-600 text-white hover:bg-red-700"
+                  }`}
+                  disabled={pagination.currentPage === 1}
+                >
+                  Previous
+                </button>
+                <span>
+                  Page {pagination.currentPage} of {pagination.totalPages}
+                </span>
+                <button
+                  onClick={() =>
+                    setPagination((prev) => ({
+                      ...prev,
+                      currentPage: Math.min(prev.currentPage + 1, prev.totalPages),
+                    }))
+                  }
+                  className={`px-4 py-2 rounded ${
+                    pagination.currentPage === pagination.totalPages
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      : "bg-red-600 text-white hover:bg-red-700"
+                  }`}
+                  disabled={pagination.currentPage === pagination.totalPages}
+                >
+                  Next
+                </button>
+              </div>
+            </section>
           </div>
 
           <div className="w-full lg:w-1/3">
@@ -398,62 +579,3 @@ export default function NewsArticlePage({ newsItem, categories, error }: Props) 
     </div>
   );
 }
-
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const { slug } = context.params!;
-  let newsItem: NewsItem | null = null;
-  let categories: string[] = ["Home"];
-  let error: string | null = null;
-
-  try {
-    // Fetch article
-    const response = await fetch("https://news-app-three-lyart.vercel.app/news-app/published");
-    const result = await response.json();
-    if (result.success && result.data) {
-      const article = result.data.find(
-        (item: NewsItem) => generateSlug(item.newsTitle) === slug
-      );
-      if (article) {
-        newsItem = {
-          ...article,
-          slug: generateSlug(article.newsTitle),
-          createdAt: new Date(article.createdAt).toLocaleDateString("en-US", {
-            month: "long",
-            day: "numeric",
-            year: "numeric",
-          }),
-        };
-
-        // Record view
-        const viewResponse = await fetch(
-          `https://news-app-three-lyart.vercel.app/news-app/news-view/${article._id}`,
-          { method: "POST" }
-        );
-        const viewResult = await viewResponse.json();
-      if (viewResult.success && newsItem) {
-  newsItem.views = viewResult.views;
-}
-      } else {
-        error = "Article not found";
-      }
-    } else {
-      error = "Failed to fetch article";
-    }
-
-    // Fetch categories
-    const categoryResponse = await fetch("https://news-app-three-lyart.vercel.app/news-app-category");
-    const categoryResult = await categoryResponse.json();
-    if (categoryResult.success && categoryResult.data) {
-      categories = ["Home", ...categoryResult.data.map((item: { categoryName: string }) => item.categoryName)];
-    }
-  } catch (err) {
-    error = "Error loading article";
-    console.error("Server-side error:", err);
-  }
-
-  if (error) {
-    return { props: { newsItem: null, categories, error } };
-  }
-
-  return { props: { newsItem, categories } };
-};

@@ -20,6 +20,8 @@ export default function DailyPostClone() {
   const [featuredNews, setFeaturedNews] = useState<NewsItem[]>([]);
   const [categories, setCategories] = useState(["Home"]);
   const [selectedCategory, setSelectedCategory] = useState("Home");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(6); // Default items per page
 
   interface NewsItem {
     id: string;
@@ -150,6 +152,148 @@ export default function DailyPostClone() {
     );
   }, [featuredNews, selectedCategory]);
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredNews.length / itemsPerPage);
+  const paginatedNews = filteredNews.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  // Handle items per page change
+  const handleItemsPerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setItemsPerPage(Number(e.target.value));
+    setCurrentPage(1); // Reset to first page when items per page changes
+  };
+
+  // Pagination component
+  const Pagination = () => {
+    const maxVisiblePages = 5; // Maximum number of page buttons to show
+    const pageNumbers = [];
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pageNumbers.push(i);
+    }
+
+    return (
+      <div className="flex flex-col sm:flex-row justify-between items-center mt-6 space-y-4 sm:space-y-0">
+        {/* Items per page dropdown */}
+        <div className="flex items-center space-x-2">
+          <label htmlFor="itemsPerPage" className="text-sm">
+            Items per page:
+          </label>
+          <select
+            id="itemsPerPage"
+            value={itemsPerPage}
+            onChange={handleItemsPerPageChange}
+            className={`p-1 rounded border ${
+              darkMode
+                ? "bg-gray-700 border-gray-600 text-white"
+                : "bg-gray-100 border-gray-300 text-gray-900"
+            }`}
+          >
+            <option value={6}>6</option>
+            <option value={12}>12</option>
+            <option value={24}>24</option>
+          </select>
+        </div>
+
+        {/* Pagination buttons */}
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className={`px-4 py-2 rounded-md transition-colors ${
+              currentPage === 1
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : darkMode
+                ? "bg-red-700 text-white hover:bg-red-800"
+                : "bg-red-600 text-white hover:bg-red-700"
+            }`}
+            aria-label="Previous page"
+          >
+            Previous
+          </button>
+          {startPage > 1 && (
+            <>
+              <button
+                onClick={() => handlePageChange(1)}
+                className={`px-4 py-2 rounded-md transition-colors ${
+                  darkMode
+                    ? "bg-gray-700 text-white hover:bg-gray-600"
+                    : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                }`}
+              >
+                1
+              </button>
+              {startPage > 2 && <span className="px-2">...</span>}
+            </>
+          )}
+          {pageNumbers.map((page) => (
+            <button
+              key={page}
+              onClick={() => handlePageChange(page)}
+              className={`px-4 py-2 rounded-md transition-colors ${
+                currentPage === page
+                  ? darkMode
+                    ? "bg-red-700 text-white"
+                    : "bg-red-600 text-white"
+                  : darkMode
+                  ? "bg-gray-700 text-white hover:bg-gray-600"
+                  : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+              }`}
+              aria-current={currentPage === page ? "page" : undefined}
+            >
+              {page}
+            </button>
+          ))}
+          {endPage < totalPages && (
+            <>
+              {endPage < totalPages - 1 && <span className="px-2">...</span>}
+              <button
+                onClick={() => handlePageChange(totalPages)}
+                className={`px-4 py-2 rounded-md transition-colors ${
+                  darkMode
+                    ? "bg-gray-700 text-white hover:bg-gray-600"
+                    : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                }`}
+              >
+                {totalPages}
+              </button>
+            </>
+          )}
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className={`px-4 py-2 rounded-md transition-colors ${
+              currentPage === totalPages
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : darkMode
+                ? "bg-red-700 text-white hover:bg-red-800"
+                : "bg-red-600 text-white hover:bg-red-700"
+            }`}
+            aria-label="Next page"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div
       className={`min-h-screen font-serif text-[12pt] ${
@@ -214,8 +358,8 @@ export default function DailyPostClone() {
             Featured News
           </h2>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {filteredNews.length > 0 ? (
-              filteredNews.map((news) => (
+            {paginatedNews.length > 0 ? (
+              paginatedNews.map((news) => (
                 <div
                   key={news.id}
                   className={`${
@@ -253,11 +397,13 @@ export default function DailyPostClone() {
                 </div>
               ))
             ) : (
-<div className="flex items-center justify-center py-8">
-  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mr-3"></div>
-  <p className="text-gray-600">Loading latest news...</p>
-</div>            )}
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mr-3"></div>
+                <p className="text-gray-600">Loading latest news...</p>
+              </div>
+            )}
           </div>
+          {totalPages > 1 && <Pagination />}
         </section>
 
         {/* Two column layout for content */}
@@ -269,7 +415,7 @@ export default function DailyPostClone() {
                 Latest News
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {filteredNews.slice(0, 4).map((news) => (
+                {paginatedNews.slice(0, 4).map((news) => (
                   <article
                     key={news.id}
                     className={`${
@@ -310,6 +456,7 @@ export default function DailyPostClone() {
                   </article>
                 ))}
               </div>
+              {totalPages > 1 && <Pagination />}
             </section>
           </div>
 
