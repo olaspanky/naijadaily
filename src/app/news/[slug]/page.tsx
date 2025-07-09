@@ -1,21 +1,24 @@
 import { Metadata } from "next";
 import NewsArticleClient from "./NewsArticleClient";
 
+// Define PageProps with params as a Promise
 interface PageProps {
-  params: {
-    slug: string;
-  };
+  params: Promise<{ slug: string }>;
 }
 
-export async function generateMetadata(
-  { params }: { params: { slug: string } }
-): Promise<Metadata> {
-  const { slug } = params;
+// Generate metadata for the page
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const { slug } = await params; // Unwrap the Promise
 
   try {
-    const res = await fetch(`https://news-app-three-lyart.vercel.app/news-app/published?slug=${slug}`, {
-      next: { revalidate: 3600 }
-    });
+    const res = await fetch(
+      `https://news-app-three-lyart.vercel.app/news-app/published?slug=${slug}`,
+      {
+        next: { revalidate: 3600 },
+      }
+    );
 
     if (!res.ok) throw new Error("Failed to fetch article");
     const article = await res.json();
@@ -23,7 +26,7 @@ export async function generateMetadata(
     if (!article) {
       return {
         title: "Article Not Found",
-        description: "The requested article could not be found"
+        description: "The requested article could not be found",
       };
     }
 
@@ -35,7 +38,7 @@ export async function generateMetadata(
       title: article.newsTitle,
       description: article.newsBody?.substring(0, 160) || "Read the latest news on Naija Daily",
       alternates: {
-        canonical: `https://naijadaily.ng/news/${slug}`
+        canonical: `https://naijadaily.ng/news/${slug}`,
       },
       openGraph: {
         title: article.newsTitle,
@@ -63,11 +66,13 @@ export async function generateMetadata(
   } catch (error) {
     return {
       title: "Error Loading Article",
-      description: "An error occurred while loading the article"
+      description: "An error occurred while loading the article",
     };
   }
 }
 
-export default function NewsArticlePage({ params }: PageProps) {
-  return <NewsArticleClient />;
+// Default export for the page
+export default async function NewsArticlePage({ params }: PageProps) {
+  const { slug } = await params; // Unwrap the Promise
+  return <NewsArticleClient />; // Pass slug to client component
 }
