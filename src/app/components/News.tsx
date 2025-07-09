@@ -7,11 +7,6 @@ import Head from "next/head";
 import Link from "next/link";
 import DOMPurify from "isomorphic-dompurify";
 import Navbar from "@/app/components/Navbar";
-import { useRouter } from "next/navigation"; // For accessing slug
-import { useParams } from "next/navigation";
-import type { Metadata } from 'next'
-
-
 
 const generateSlug = (title: string) => {
   return title
@@ -22,9 +17,8 @@ const generateSlug = (title: string) => {
 
 interface NewsProps {
   slug: string;
+  initialNewsItem?: NewsItem; // Optional initial data from server
 }
-
-
 
 interface NewsItem {
   _id: string;
@@ -44,106 +38,68 @@ interface Pagination {
   limit: number;
 }
 
-export default function NewsArticlePage({ slug }: NewsProps) {
+export default function News({ slug, initialNewsItem }: NewsProps) {
   const [darkMode, setDarkMode] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Home");
-  const [newsItem, setNewsItem] = useState<NewsItem | null>(null);
+  const [newsItem, setNewsItem] = useState<NewsItem | null>(initialNewsItem || null);
   const [categories, setCategories] = useState<string[]>(["Home"]);
   const [error, setError] = useState<string | null>(null);
   const [relatedArticles, setRelatedArticles] = useState<NewsItem[]>([]);
   const [pagination, setPagination] = useState<Pagination>({
     currentPage: 1,
     totalPages: 1,
-    limit: 3, // Show 3 related articles per page
+    limit: 3,
   });
-  const router = useRouter();
-  const params = useParams();
 
   const sanitizedNewsBody = newsItem ? DOMPurify.sanitize(newsItem.newsBody) : "";
 
-  // Fetch article and categories
+  // Fetch categories and related articles on client side
   useEffect(() => {
-    if (!slug) return;
-
     const fetchData = async () => {
       try {
-        // Fetch article
-        const response = await fetch("https://news-app-three-lyart.vercel.app/news-app/published");
-        const result = await response.json();
-        if (result.success && result.data) {
-          const article = result.data.find(
-            (item: NewsItem) => generateSlug(item.newsTitle) === slug
-          );
-          if (article) {
-            const newsItemData: NewsItem = {
-              ...article,
-              slug: generateSlug(article.newsTitle),
-              createdAt: new Date(article.createdAt).toLocaleDateString("en-US", {
-                month: "long",
-                day: "numeric",
-                year: "numeric",
-              }),
-            };
-            setNewsItem(newsItemData);
-
-            // Record view
-            const viewResponse = await fetch(
-              `https://news-app-three-lyart.vercel.app/news-app/news-view/${article._id}`,
-              { method: "POST" }
-            );
-            const viewResult = await viewResponse.json();
-            if (viewResult.success) {
-              setNewsItem((prev) => (prev ? { ...prev, views: viewResult.views } : prev));
-            }
-
-            // Fetch related articles (same category, paginated)
-            const relatedResponse = await fetch(
-              `https://news-app-three-lyart.vercel.app/news-app/published?category=${article.category}&page=${pagination.currentPage}&limit=${pagination.limit}`
-            );
-            const relatedResult = await relatedResponse.json();
-            if (relatedResult.success && relatedResult.data) {
-              setRelatedArticles(
-                relatedResult.data
-                  .filter((item: NewsItem) => item._id !== article._id)
-                  .map((item: NewsItem) => ({
-                    ...item,
-                    slug: generateSlug(item.newsTitle),
-                    createdAt: new Date(item.createdAt).toLocaleDateString("en-US", {
-                      month: "long",
-                      day: "numeric",
-                      year: "numeric",
-                    }),
-                  }))
-              );
-              setPagination((prev) => ({
-                ...prev,
-                totalPages: Math.ceil(relatedResult.total / pagination.limit),
-              }));
-            }
-          } else {
-            setError("Article not found");
+        if (newsItem) {
+          // Fetch categories
+          const categoryResponse = await fetch("https://news-app-three-lyart.vercel.app/news-app-category");
+          const categoryResult = await categoryResponse.json();
+          if (categoryResult.success && categoryResult.data) {
+            setCategories(["Home", ...categoryResult.data.map((item: { categoryName: string }) => item.categoryName)]);
           }
-        } else {
-          setError("Failed to fetch article");
-        }
 
-        // Fetch categories
-        const categoryResponse = await fetch("https://news-app-three-lyart.vercel.app/news-app-category");
-        const categoryResult = await categoryResponse.json();
-        if (categoryResult.success && categoryResult.data) {
-          setCategories(["Home", ...categoryResult.data.map((item: { categoryName: string }) => item.categoryName)]);
+          // Fetch related articles
+          const relatedResponse = await fetch(
+            `https://news-app-three-lyart.vercel.app/news-app/published?category=${newsItem.category}&page=${pagination.currentPage}&limit=${pagination.limit}`
+          );
+          const relatedResult = await relatedResponse.json();
+          if (relatedResult.success && relatedResult.data) {
+            setRelatedArticles(
+              relatedResult.data
+                .filter((item: NewsItem) => item._id !== newsItem._id)
+                .map((item: NewsItem) => ({
+                  ...item,
+                  slug: generateSlug(item.newsTitle),
+                  createdAt: new Date(item.createdAt).toLocaleDateString("en-US", {
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                  }),
+                }))
+            );
+            setPagination((prev) => ({
+              ...prev,
+              totalPages: Math.ceil(relatedResult.total / pagination.limit),
+            }));
+          }
         }
       } catch (err) {
-        setError("Error loading article");
+        setError("Error loading related data");
         console.error("Client-side error:", err);
       }
     };
 
     fetchData();
-  }, [slug, pagination.currentPage]);
-
+  }, [newsItem, pagination.currentPage]);
   // Set current date
   useEffect(() => {
     const date = new Date();
@@ -195,10 +151,10 @@ export default function NewsArticlePage({ slug }: NewsProps) {
 
   if (error || !newsItem) {
     return (
-   <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mr-3 bg-white"></div>
-                <p className="text-gray-600">Loading your news...</p>
-              </div>
+      <div className="flex items-center justify-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mr-3 bg-white"></div>
+        <p className="text-gray-600">Loading your news...</p>
+      </div>
     );
   }
 
@@ -209,35 +165,31 @@ export default function NewsArticlePage({ slug }: NewsProps) {
       }`}
       style={{ fontFamily: "'Times New Roman', Times, serif" }}
     >
-<Head>
-  <title>{newsItem.newsTitle.substring(0, 60)}</title> {/* Short, specific title */}
-  <meta name="description" content={newsItem.newsBody.substring(0, 160)} />
-  {/* Open Graph Tags */}
-  <meta property="og:title" content={newsItem.newsTitle.substring(0, 60)} /> {/* Short, specific, no site branding */}
-  <meta property="og:description" content={newsItem.newsBody.substring(0, 160)} /> {/* Concise description */}
-  <meta property="og:image" content={imageUrl} /> {/* High-quality image, at least 1200x630 */}
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="630" />
-  <meta property="og:image:alt" content={`Featured image for ${newsItem.newsTitle}`} /> {/* Descriptive alt text */}
-  <meta property="og:image:type" content="image/jpeg" /> {/* Specify image type, adjust if PNG */}
-  <meta property="og:url" content={`https://naijadaily.ng/${newsItem.slug}`} />
-  <meta property="og:type" content="article" />
-  <meta property="og:site_name" content="Naija Daily" /> {/* Site name, not in og:title */}
-  {/* Twitter Card Tags */}
-  <meta name="twitter:card" content="summary_large_image" /> {/* Large image for rich previews */}
-  <meta name="twitter:title" content={newsItem.newsTitle.substring(0, 60)} />
-  <meta name="twitter:description" content={newsItem.newsBody.substring(0, 160)} />
-  <meta name="twitter:image" content={imageUrl} />
-  <meta name="twitter:image:alt" content={`Featured image for ${newsItem.newsTitle}`} />
-  <meta name="twitter:site" content="@NaijaDaily" />
-  <meta name="twitter:creator" content={newsItem.createdBy} /> {/* Credit author */}
-  {/* Apple-Specific Tags for Messages */}
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" /> {/* High-res icon for Messages */}
-  <link rel="icon" href="/favicon.ico" /> {/* Fallback favicon */}
-  <meta name="apple-mobile-web-app-title" content={newsItem.newsTitle.substring(0, 60)} /> {/* Optional: App title */}
-  {/* Canonical URL */}
-  <link rel="canonical" href={`https://naijadaily.ng/${newsItem.slug}`} />
-</Head>
+      <Head>
+        <title>{newsItem.newsTitle.substring(0, 60)}</title>
+        <meta name="description" content={newsItem.newsBody.substring(0, 160)} />
+        <meta property="og:title" content={newsItem.newsTitle.substring(0, 60)} />
+        <meta property="og:description" content={newsItem.newsBody.substring(0, 160)} />
+        <meta property="og:image" content={imageUrl} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content={`Featured image for ${newsItem.newsTitle}`} />
+        <meta property="og:image:type" content="image/jpeg" />
+        <meta property="og:url" content={`https://naijadaily.ng/${newsItem.slug}`} />
+        <meta property="og:type" content="article" />
+        <meta property="og:site_name" content="Naija Daily" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={newsItem.newsTitle.substring(0, 60)} />
+        <meta name="twitter:description" content={newsItem.newsBody.substring(0, 160)} />
+        <meta name="twitter:image" content={imageUrl} />
+        <meta name="twitter:image:alt" content={`Featured image for ${newsItem.newsTitle}`} />
+        <meta name="twitter:site" content="@NaijaDaily" />
+        <meta name="twitter:creator" content={newsItem.createdBy} />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+        <link rel="icon" href="/favicon.ico" />
+        <meta name="apple-mobile-web-app-title" content={newsItem.newsTitle.substring(0, 60)} />
+        <link rel="canonical" href={`https://naijadaily.ng/${newsItem.slug}`} />
+      </Head>
 
       <Navbar
         categories={categories}
@@ -251,9 +203,7 @@ export default function NewsArticlePage({ slug }: NewsProps) {
         <div className="flex flex-col lg:flex-row gap-6">
           <div className="w-full lg:w-2/3">
             <article
-              className={`${
-                darkMode ? "bg-gray-800" : "bg-white"
-              } rounded-lg shadow-md p-1 lg:p-8`}
+              className={`${darkMode ? "bg-gray-800" : "bg-white"} rounded-lg shadow-md p-1 lg:p-8`}
             >
               <div className="mb-6">
                 <span className="inline-block px-3 py-1 text-sm font-semibold text-white bg-red-600 rounded-full mb-4">
@@ -310,7 +260,7 @@ export default function NewsArticlePage({ slug }: NewsProps) {
                       viewBox="0 0 24 24"
                       aria-hidden="true"
                     >
-                      <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z" />
+                      <path d="M18 16.08c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.173.198-.297.297-.445.099-.149.099-.347-.002-.496-.099-.149-.446-.547-.669-.845-.223-.297-.472-.198-.67-.05-.198.149-1.489.745-1.687.943-.198.198-.297.496-.446.744-.148.247-.347.396-.545.545-.198.149-.297.347-.446.545-.148.198-.247.446-.347.644-.099.198-.099.496.05.694.148.198.644.894 1.489 1.489.845.595 1.489.893 1.786.992.297.099.595.099.892-.05.297-.148 1.191-.595 1.489-.744.297-.149.595-.297.744-.446.148-.149.297-.347.347-.496.05-.149.05-.347-.05-.496zM12 0C5.373 0 0 5.373 0 12c0 2.626.847 5.066 2.282 7.039L1 23l4.022-1.282A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22.091c-2.093 0-4.138-.573-5.922-1.658l-.423-.267-2.382.763.772-2.322-.267-.423A10.085 10.085 0 012 12c0-5.514 4.486-10 10-10s10 4.486 10 12-4.486 10.091-10 10.091z" />
                     </svg>
                     Share
                   </button>
@@ -319,7 +269,7 @@ export default function NewsArticlePage({ slug }: NewsProps) {
                     onClick={() => handleShare("whatsapp")}
                     aria-label="Share on WhatsApp"
                   >
-                    <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 24 24">
+                    <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.173.198-.297.297-.445.099-.149.099-.347-.002-.496-.099-.149-.446-.547-.669-.845-.223-.297-.472-.198-.67-.05-.198.149-1.489.745-1.687.943-.198.198-.297.496-.446.744-.148.247-.347.396-.545.545-.198.149-.297.347-.446.545-.148.198-.247.446-.347.644-.099.198-.099.496.05.694.148.198.644.894 1.489 1.489.845.595 1.489.893 1.786.992.297.099.595.099.892-.05.297-.148 1.191-.595 1.489-.744.297-.149.595-.297.744-.446.148-.149.297-.347.347-.496.05-.149.05-.347-.05-.496zM12 0C5.373 0 0 5.373 0 12c0 2.626.847 5.066 2.282 7.039L1 23l4.022-1.282A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22.091c-2.093 0-4.138-.573-5.922-1.658l-.423-.267-2.382.763.772-2.322-.267-.423A10.085 10.085 0 012 12c0-5.514 4.486-10 10-10s10 4.486 10 12-4.486 10.091-10 10.091z" />
                     </svg>
                     WhatsApp
@@ -329,7 +279,7 @@ export default function NewsArticlePage({ slug }: NewsProps) {
                     onClick={() => handleShare("facebook")}
                     aria-label="Share on Facebook"
                   >
-                    <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 24 24">
+                    <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
                       <path
                         fillRule="evenodd"
                         d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"
@@ -343,7 +293,7 @@ export default function NewsArticlePage({ slug }: NewsProps) {
                     onClick={() => handleShare("twitter")}
                     aria-label="Share on Twitter"
                   >
-                    <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 24 24">
+                    <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
                     </svg>
                     Twitter
@@ -352,7 +302,6 @@ export default function NewsArticlePage({ slug }: NewsProps) {
               </div>
             </article>
 
-            {/* Related Articles Section with Pagination */}
             <section
               className={`mt-8 ${darkMode ? "bg-gray-800" : "bg-white"} rounded-lg shadow-md p-4`}
             >
@@ -453,9 +402,7 @@ export default function NewsArticlePage({ slug }: NewsProps) {
             </div>
 
             <section
-              className={`${
-                darkMode ? "bg-gray-800" : "bg-white"
-              } rounded-lg shadow-md p-4`}
+              className={`${darkMode ? "bg-gray-800" : "bg-white"} rounded-lg shadow-md p-4`}
             >
               <h2 className="text-xl font-bold border-b-2 border-red-600 pb-2 mb-4">
                 Subscribe
@@ -487,7 +434,7 @@ export default function NewsArticlePage({ slug }: NewsProps) {
         </div>
       </main>
 
-       <footer className={`py-8 ${darkMode ? "bg-gray-800" : "bg-gray-900"} text-white`}>
+      <footer className={`py-8 ${darkMode ? "bg-gray-800" : "bg-gray-900"} text-white`}>
         <div className="container mx-auto px-4 lg:px-8">
           <div className="flex flex-col lg:flex-row lg:justify-between gap-8">
             <div>
