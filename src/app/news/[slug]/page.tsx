@@ -1,11 +1,9 @@
-"use client";
-
-import { useState, useEffect } from "react";
+import { GetServerSideProps } from "next";
+import { useState , useEffect} from "react";
 import { Menu, Search, X, ChevronDown, Sun, Moon } from "lucide-react";
 import Image from "next/image";
 import Head from "next/head";
 import logo from "../../../../public/ndb.png";
-import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import DOMPurify from "isomorphic-dompurify";
 import Navbar from "@/app/components/Navbar";
@@ -29,23 +27,18 @@ interface NewsItem {
   views: number;
 }
 
-interface RecordViewResponse {
-  success: boolean;
-  views: number;
+interface Props {
+  newsItem: NewsItem | null;
+  categories: string[];
+  error?: string;
 }
 
-export default function NewsArticlePage() {
+export default function NewsArticlePage({ newsItem, categories, error }: Props) {
   const [darkMode, setDarkMode] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState("");
-  const [categories, setCategories] = useState(["Home"]);
   const [selectedCategory, setSelectedCategory] = useState("Home");
-  const [newsItem, setNewsItem] = useState<NewsItem | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
-  const params = useParams();
-  const slug = params.slug as string;
+
   const sanitizedNewsBody = newsItem ? DOMPurify.sanitize(newsItem.newsBody) : "";
 
   const handleShare = (platform?: string) => {
@@ -76,6 +69,7 @@ export default function NewsArticlePage() {
     console.log("Subscribe clicked");
   };
 
+  // Set current date
   useEffect(() => {
     const date = new Date();
     setCurrentDate(
@@ -88,76 +82,6 @@ export default function NewsArticlePage() {
     );
   }, []);
 
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await fetch("https://news-app-three-lyart.vercel.app/news-app-category");
-        const result = await response.json();
-        if (result.success && result.data) {
-          const categoryNames = result.data.map((item: { categoryName: string }) => item.categoryName);
-          setCategories(["Home", ...categoryNames]);
-        }
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-        setCategories(["Home"]);
-      }
-    };
-    fetchCategories();
-  }, []);
-
-  useEffect(() => {
-    const fetchNewsArticle = async () => {
-      try {
-        const response = await fetch("https://news-app-three-lyart.vercel.app/news-app/published");
-        const result = await response.json();
-        if (result.success && result.data) {
-          const article = result.data.find(
-            (item: NewsItem) => generateSlug(item.newsTitle) === slug
-          );
-          if (article) {
-            setNewsItem({
-              ...article,
-              slug: generateSlug(article.newsTitle),
-              createdAt: new Date(article.createdAt).toLocaleDateString("en-US", {
-                month: "long",
-                day: "numeric",
-                year: "numeric",
-              }),
-            });
-            await recordView(article._id);
-          } else {
-            setError("Article not found");
-          }
-        } else {
-          setError("Failed to fetch article");
-        }
-      } catch (error) {
-        console.error("Error fetching article:", error);
-        setError("Error loading article");
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (slug) {
-      fetchNewsArticle();
-    }
-  }, [slug]);
-
-  const recordView = async (newsId: string): Promise<void> => {
-    try {
-      const response = await fetch(
-        `https://news-app-three-lyart.vercel.app/news-app/news-view/${newsId}`,
-        { method: "POST" }
-      );
-      const result: RecordViewResponse = await response.json();
-      if (result.success && newsItem && newsItem._id === newsId) {
-        setNewsItem((prev) => (prev ? { ...prev, views: result.views } : prev));
-      }
-    } catch (error) {
-      console.error("Error recording view:", error);
-    }
-  };
-
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
   };
@@ -165,40 +89,6 @@ export default function NewsArticlePage() {
   const imageUrl = newsItem?.newsImage?.startsWith("http")
     ? newsItem.newsImage
     : `https://naijadaily.ng${newsItem?.newsImage || "/default-image.jpg"}`;
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <main className="container mx-auto px-4 lg:px-8 py-6">
-          <div className="flex flex-col lg:flex-row gap-6">
-            <div className="w-full lg:w-2/3">
-              <div
-                className={`${
-                  darkMode ? "bg-gray-800" : "bg-white"
-                } rounded-lg shadow-md p-6 lg:p-8`}
-              >
-                <div className="w-24 h-6 bg-gray-300 dark:bg-gray-700 rounded-full mb-4 animate-pulse"></div>
-                <div className="w-full h-12 bg-gray-300 dark:bg-gray-700 rounded mb-4 animate-pulse"></div>
-                <div className="flex justify-between items-center mb-4">
-                  <div className="w-48 h-4 bg-gray-300 dark:bg-gray-700 rounded animate-pulse"></div>
-                  <div className="w-24 h-4 bg-gray-300 dark:bg-gray-700 rounded animate-pulse"></div>
-                </div>
-                <div className="w-full h-64 lg:h-96 bg-gray-300 dark:bg-gray-700 rounded-lg mb-6 animate-pulse"></div>
-                <div className="space-y-4">
-                  {[...Array(4)].map((_, i) => (
-                    <div
-                      key={i}
-                      className="w-full h-4 bg-gray-300 dark:bg-gray-700 rounded animate-pulse"
-                    ></div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </main>
-      </div>
-    );
-  }
 
   if (error || !newsItem) {
     return (
@@ -221,6 +111,8 @@ export default function NewsArticlePage() {
         <meta property="og:title" content={newsItem.newsTitle} />
         <meta property="og:description" content={newsItem.newsBody.substring(0, 160)} />
         <meta property="og:image" content={imageUrl} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
         <meta property="og:url" content={`https://naijadaily.ng/${newsItem.slug}`} />
         <meta property="og:type" content="article" />
         <meta property="og:site_name" content="Naija Daily" />
@@ -308,21 +200,21 @@ export default function NewsArticlePage() {
                     Share
                   </button>
                   <button
-                    className="flex items-center text-gray-500 hover:text-red-600"
+                    className="flex items-center text-gray-500 hover:text-green-600"
                     onClick={() => handleShare("whatsapp")}
                     aria-label="Share on WhatsApp"
                   >
-                    <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                    <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 24 24">
                       <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.173.198-.297.297-.445.099-.149.099-.347-.002-.496-.099-.149-.446-.547-.669-.845-.223-.297-.472-.198-.67-.05-.198.149-1.489.745-1.687.943-.198.198-.297.496-.446.744-.148.247-.347.396-.545.545-.198.149-.297.347-.446.545-.148.198-.247.446-.347.644-.099.198-.099.496.05.694.148.198.644.894 1.489 1.489.845.595 1.489.893 1.786.992.297.099.595.099.892-.05.297-.148 1.191-.595 1.489-.744.297-.149.595-.297.744-.446.148-.149.297-.347.347-.496.05-.149.05-.347-.05-.496zM12 0C5.373 0 0 5.373 0 12c0 2.626.847 5.066 2.282 7.039L1 23l4.022-1.282A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22.091c-2.093 0-4.138-.573-5.922-1.658l-.423-.267-2.382.763.772-2.322-.267-.423A10.085 10.085 0 012 12c0-5.514 4.486-10 10-10s10 4.486 10 12-4.486 10.091-10 10.091z" />
                     </svg>
                     WhatsApp
                   </button>
                   <button
-                    className="flex items-center text-gray-500 hover:text-red-600"
+                    className="flex items-center text-gray-500 hover:text-blue-600"
                     onClick={() => handleShare("facebook")}
                     aria-label="Share on Facebook"
                   >
-                    <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                    <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 24 24">
                       <path
                         fillRule="evenodd"
                         d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"
@@ -332,11 +224,11 @@ export default function NewsArticlePage() {
                     Facebook
                   </button>
                   <button
-                    className="flex items-center text-gray-500 hover:text-red-600"
+                    className="flex items-center text-gray-500 hover:text-blue-400"
                     onClick={() => handleShare("twitter")}
                     aria-label="Share on Twitter"
                   >
-                    <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                    <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 24 24">
                       <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
                     </svg>
                     Twitter
@@ -506,3 +398,62 @@ export default function NewsArticlePage() {
     </div>
   );
 }
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const { slug } = context.params!;
+  let newsItem: NewsItem | null = null;
+  let categories: string[] = ["Home"];
+  let error: string | null = null;
+
+  try {
+    // Fetch article
+    const response = await fetch("https://news-app-three-lyart.vercel.app/news-app/published");
+    const result = await response.json();
+    if (result.success && result.data) {
+      const article = result.data.find(
+        (item: NewsItem) => generateSlug(item.newsTitle) === slug
+      );
+      if (article) {
+        newsItem = {
+          ...article,
+          slug: generateSlug(article.newsTitle),
+          createdAt: new Date(article.createdAt).toLocaleDateString("en-US", {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+          }),
+        };
+
+        // Record view
+        const viewResponse = await fetch(
+          `https://news-app-three-lyart.vercel.app/news-app/news-view/${article._id}`,
+          { method: "POST" }
+        );
+        const viewResult = await viewResponse.json();
+      if (viewResult.success && newsItem) {
+  newsItem.views = viewResult.views;
+}
+      } else {
+        error = "Article not found";
+      }
+    } else {
+      error = "Failed to fetch article";
+    }
+
+    // Fetch categories
+    const categoryResponse = await fetch("https://news-app-three-lyart.vercel.app/news-app-category");
+    const categoryResult = await categoryResponse.json();
+    if (categoryResult.success && categoryResult.data) {
+      categories = ["Home", ...categoryResult.data.map((item: { categoryName: string }) => item.categoryName)];
+    }
+  } catch (err) {
+    error = "Error loading article";
+    console.error("Server-side error:", err);
+  }
+
+  if (error) {
+    return { props: { newsItem: null, categories, error } };
+  }
+
+  return { props: { newsItem, categories } };
+};

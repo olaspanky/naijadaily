@@ -253,8 +253,10 @@ export default function DailyPostClone() {
                 </div>
               ))
             ) : (
-              <p className="text-gray-500">No news available.</p>
-            )}
+<div className="flex items-center justify-center py-8">
+  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mr-3"></div>
+  <p className="text-gray-600">Loading latest news...</p>
+</div>            )}
           </div>
         </section>
 
