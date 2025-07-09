@@ -132,7 +132,7 @@ export default async function NewsArticlePage({ params }: Props) {
     allArticles = result.data || [];
     article = allArticles.find(
       (item: NewsItem) => generateSlug(item.newsTitle) === slug
-    );
+    ) || null;
   } catch (error) {
     console.error("Fetch error:", error);
   }
