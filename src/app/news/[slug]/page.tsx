@@ -1,11 +1,18 @@
 import { Metadata } from "next";
 import NewsArticleClient from "./NewsArticleClient";
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+interface PageProps {
+  params: {
+    slug: string;
+  };
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;  // First await the params if needed (though usually params is available synchronously)
+
   try {
-    // Fetch your article data
-    const res = await fetch(`https://news-app-three-lyart.vercel.app/news-app/published?slug=${params.slug}`, {
-      next: { revalidate: 3600 } // Revalidate every hour
+    const res = await fetch(`https://news-app-three-lyart.vercel.app/news-app/published?slug=${slug}`, {
+      next: { revalidate: 3600 }
     });
     
     if (!res.ok) throw new Error("Failed to fetch article");
@@ -26,12 +33,12 @@ export async function generateMetadata({ params }: { params: { slug: string } })
       title: article.newsTitle,
       description: article.newsBody?.substring(0, 160) || "Read the latest news on Naija Daily",
       alternates: {
-        canonical: `https://naijadaily.ng/news/${params.slug}`
+        canonical: `https://naijadaily.ng/news/${slug}`
       },
       openGraph: {
         title: article.newsTitle,
         description: article.newsBody?.substring(0, 160) || "Read the latest news on Naija Daily",
-        url: `https://naijadaily.ng/news/${params.slug}`,
+        url: `https://naijadaily.ng/news/${slug}`,
         type: "article",
         publishedTime: article.createdAt,
         authors: [article.createdBy],
@@ -59,6 +66,6 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   }
 }
 
-export default function NewsArticlePage({ params }: { params: { slug: string } }) {
-  return <NewsArticleClient slug={params.slug} />;
+export default function NewsArticlePage({ params }: PageProps) {
+  return <NewsArticleClient  />;
 }

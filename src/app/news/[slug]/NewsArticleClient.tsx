@@ -34,7 +34,7 @@ interface Pagination {
   limit: number;
 }
 
-export default function NewsArticleClient({ slug }: { slug: string }) {
+export default function NewsArticlePage() {
   const [darkMode, setDarkMode] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState("");
@@ -43,7 +43,6 @@ export default function NewsArticleClient({ slug }: { slug: string }) {
   const [categories, setCategories] = useState<string[]>(["Home"]);
   const [error, setError] = useState<string | null>(null);
   const [relatedArticles, setRelatedArticles] = useState<NewsItem[]>([]);
-  
   const [pagination, setPagination] = useState<Pagination>({
     currentPage: 1,
     totalPages: 1,
@@ -51,6 +50,7 @@ export default function NewsArticleClient({ slug }: { slug: string }) {
   });
   const router = useRouter();
   const params = useParams();
+  const { slug } = params;
   const sanitizedNewsBody = newsItem ? DOMPurify.sanitize(newsItem.newsBody) : "";
 
   // Update document head with meta tags when newsItem changes
