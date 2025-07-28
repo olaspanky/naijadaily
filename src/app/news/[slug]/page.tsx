@@ -219,7 +219,7 @@ export default async function NewsArticlePage({ params }: Props) {
     console.error(`Article not found for slug: ${slug}`);
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-        <div className="text-center p-8 bg-white rounded-xl shadow-lg max-w-md mx-4">
+        <div className="text-center lg:p-8 p-2 bg-white rounded-xl shadow-lg max-w-md mx-4">
           <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
             <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
@@ -282,7 +282,7 @@ export default async function NewsArticlePage({ params }: Props) {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
       {/* Enhanced Navbar */}
       <nav className="bg-white/95 backdrop-blur-sm shadow-lg border-b border-gray-200 sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto p-2 lg:px-4 py-4">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center space-x-2">
               <div className="h-8 lg:h-10  flex items-center justify-center">
@@ -301,10 +301,10 @@ export default async function NewsArticlePage({ params }: Props) {
       </nav>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8 max-w-7xl">
+      <main className="container mx-auto p-2 lg:px-4 lg:py-8 max-w-7xl">
         <article className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
           {/* Article Header */}
-          <div className="p-6 md:p-10">
+          <div className="p-2 lg:p-6 md:p-10">
             <div className="flex items-center space-x-3 mb-6">
               <span className="inline-flex items-center px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-red-600 to-red-700 rounded-full shadow-lg">
                 {article.category}
