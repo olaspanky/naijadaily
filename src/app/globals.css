@@ -103,3 +103,35 @@ body {
   color: #ef4444; /* Tailwind red-500 */
   background-color: rgba(248, 113, 113, 0.1);
 }
+
+/* styles/globals.css */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    to right,
+    #e5e7eb 4%,
+    #d1d5db 25%,
+    #e5e7eb 36%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.dark .animate-shimmer {
+  background: linear-gradient(
+    to right,
+    #374151 4%,
+    #4b5563 25%,
+    #374151 36%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
