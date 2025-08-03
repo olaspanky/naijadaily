@@ -279,7 +279,9 @@ export default async function NewsArticlePage({ params }: Props) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50"
+          style={{ fontFamily: "'Times New Roman', Times, serif" }}
+>
       {/* Enhanced Navbar */}
       <nav className="bg-white/95 backdrop-blur-sm shadow-lg border-b border-gray-200 sticky top-0 z-50">
         <div className="container mx-auto p-2 lg:px-4 py-4">
