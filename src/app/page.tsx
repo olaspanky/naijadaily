@@ -28,16 +28,17 @@ export default function DailyPostClone() {
   const defaultImage = "https://naijadaily.ng/public/ndb.png";
   const ads = ["/assets/ad2.jpeg", "/assets/ad3.jpeg"]; // Ad images
 
-  interface NewsItem {
-    id: string;
-    title: string;
-    slug: string;
-    category: string;
-    image: string;
-    excerpt: string;
-    date: string;
-    views: number;
-  }
+interface NewsItem {
+  id: string;
+  title: string;
+  slug: string;
+  category: string;
+  image: string;
+  excerpt: string;
+  date: string;
+  rawDate: string; // Add rawDate for sorting
+  views: number;
+}
 
   // Fetch current date
   useEffect(() => {
@@ -53,16 +54,17 @@ export default function DailyPostClone() {
   }, []);
 
   // Fetch headlines
-  useEffect(() => {
-    const fetchHeadlines = async () => {
-      setIsLoading(true);
-      try {
-        const response = await fetch(
-          `https://news-app-three-lyart.vercel.app/news-app/headlines?limit=${limit}`
-        );
-        const result = await response.json();
-        if (result.success && result.data) {
-          const mappedHeadlines: NewsItem[] = result.data.map((item: any) => ({
+ useEffect(() => {
+  const fetchHeadlines = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(
+        `https://news-app-three-lyart.vercel.app/news-app/headlines?limit=${limit}`
+      );
+      const result = await response.json();
+      if (result.success && result.data) {
+        const mappedHeadlines: NewsItem[] = result.data
+          .map((item: any) => ({
             id: item._id,
             title: item.newsTitle,
             slug: generateSlug(item.newsTitle),
@@ -74,19 +76,23 @@ export default function DailyPostClone() {
               day: "numeric",
               year: "numeric",
             }),
+            rawDate: item.createdAt, // Store raw date for sorting
             views: item.views || 0,
-          }));
-          setHeadlines(mappedHeadlines);
-        }
-      } catch (error) {
-        console.error("Error fetching headlines:", error);
-        setHeadlines([]);
-      } finally {
-        setIsLoading(false);
+          }))
+          .sort((a: NewsItem, b: NewsItem) => 
+            new Date(b.rawDate).getTime() - new Date(a.rawDate).getTime()
+          ); // Sort by rawDate in descending order
+        setHeadlines(mappedHeadlines);
       }
-    };
-    fetchHeadlines();
-  }, []);
+    } catch (error) {
+      console.error("Error fetching headlines:", error);
+      setHeadlines([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  fetchHeadlines();
+}, []);
 
   // Fetch categories
   useEffect(() => {
@@ -113,20 +119,21 @@ export default function DailyPostClone() {
   }, []);
 
   // Fetch news for each category
-  useEffect(() => {
-    const fetchCategoryNews = async () => {
-      setIsLoading(true);
-      try {
-        const newsByCategory: { [key: string]: NewsItem[] } = {};
-        for (const category of categories.filter((cat) => cat !== "Headlines")) {
-          const response = await fetch(
-            `https://news-app-three-lyart.vercel.app/news-app/published?category=${encodeURIComponent(
-              category
-            )}&limit=${limit}`
-          );
-          const result = await response.json();
-          if (result.success && result.data) {
-            newsByCategory[category] = result.data.map((item: any) => ({
+ useEffect(() => {
+  const fetchCategoryNews = async () => {
+    setIsLoading(true);
+    try {
+      const newsByCategory: { [key: string]: NewsItem[] } = {};
+      for (const category of categories.filter((cat) => cat !== "Headlines")) {
+        const response = await fetch(
+          `https://news-app-three-lyart.vercel.app/news-app/published?category=${encodeURIComponent(
+            category
+          )}&limit=${limit}`
+        );
+        const result = await response.json();
+        if (result.success && result.data) {
+          newsByCategory[category] = result.data
+            .map((item: any) => ({
               id: item._id,
               title: item.newsTitle,
               slug: generateSlug(item.newsTitle),
@@ -138,25 +145,28 @@ export default function DailyPostClone() {
                 day: "numeric",
                 year: "numeric",
               }),
+              rawDate: item.createdAt, // Store raw date for sorting
               views: item.views || 0,
-            }));
-          } else {
-            newsByCategory[category] = [];
-          }
+            }))
+            .sort((a: NewsItem, b: NewsItem) => 
+              new Date(b.rawDate).getTime() - new Date(a.rawDate).getTime()
+            ); // Sort by rawDate in descending order
+        } else {
+          newsByCategory[category] = [];
         }
-        setCategoryNews(newsByCategory);
-      } catch (error) {
-        console.error("Error fetching category news:", error);
-        setCategoryNews({});
-      } finally {
-        setIsLoading(false);
       }
-    };
-    if (categories.length > 0) {
-      fetchCategoryNews();
+      setCategoryNews(newsByCategory);
+    } catch (error) {
+      console.error("Error fetching category news:", error);
+      setCategoryNews({});
+    } finally {
+      setIsLoading(false);
     }
-  }, [categories]);
-
+  };
+  if (categories.length > 0) {
+    fetchCategoryNews();
+  }
+}, [categories]);
   // Record a view
   const recordView = async (newsId: string): Promise<void> => {
     try {
@@ -191,12 +201,13 @@ export default function DailyPostClone() {
   };
 
   // Randomly decide where to place ads (e.g., after 2nd and 4th categories)
-  const getAdPlacementIndices = (categoryCount: number) => {
-    const indices = [];
-    if (categoryCount > 2) indices.push(2);
-    if (categoryCount > 4) indices.push(4);
-    return indices;
-  };
+ const getAdPlacementIndices = (categoryCount: number) => {
+  const indices = [];
+  for (let i = 2; i < categoryCount; i += 3) {
+    indices.push(i);
+  }
+  return indices;
+};
 
   return (
     <div
@@ -309,152 +320,152 @@ export default function DailyPostClone() {
      
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 lg:px-8 py-6">
-        {/* Back to Home Button (shown when a category is selected) */}
-        {selectedCategory && (
-          <div className="mb-6">
-            <button
-              onClick={() => setSelectedCategory("")}
-              className="text-sm text-red-600 hover:underline font-medium"
-            >
-              Back to Home
-            </button>
-          </div>
-        )}
+   <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl">
+  {/* Back to Home Button */}
+  {selectedCategory && (
+    <div className="mb-6">
+      <button
+        onClick={() => setSelectedCategory("")}
+        className="text-sm text-red-600 hover:underline font-medium"
+      >
+        Back to Home
+      </button>
+    </div>
+  )}
 
-        {/* Hero Headline Section (only shown when no category is selected) */}
-        {!selectedCategory && headlines.length > 0 && !isLoading && (
-          <section className="mb-8 relative">
-            <img
-              src={headlines[0].image}
-              alt={headlines[0].title}
-              className="w-full h-64 object-cover rounded-lg"
-            />
-            <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-              <div className="text-center text-white p-4">
-                <h1 className="text-3xl font-bold">{headlines[0].title}</h1>
-                <p className="mt-2 text-sm">{headlines[0].date}</p>
-                <Link
-                  href={`/news/${headlines[0].slug}`}
-                  onClick={() => recordView(headlines[0].id)}
-                  className="mt-4 inline-block bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-                >
-                  Read More
-                </Link>
-              </div>
+  {/* Hero Headline Section */}
+  {!selectedCategory && headlines.length > 0 && !isLoading && (
+    <section className="mb-12 relative">
+      <img
+        src={headlines[0].image}
+        alt={headlines[0].title}
+        className="w-full h-80 sm:h-96 object-cover rounded-lg"
+      />
+      <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+        <div className="text-center text-white p-6">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">
+            {headlines[0].title}
+          </h1>
+          <p className="text-sm sm:text-base mb-4">{headlines[0].date}</p>
+          <Link
+            href={`/news/${headlines[0].slug}`}
+            onClick={() => recordView(headlines[0].id)}
+            className="inline-block bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors"
+          >
+            Read More
+          </Link>
+        </div>
+      </div>
+    </section>
+  )}
+
+  {/* Category Sections with Ads */}
+  <div className="flex flex-col gap-8">
+    {(selectedCategory ? [selectedCategory] : categories).map(
+      (category, index) => {
+        const adIndices = getAdPlacementIndices(
+          selectedCategory ? 1 : categories.length
+        );
+        const showAd = adIndices.includes(index);
+        const newsToDisplay =
+          category === "Headlines"
+            ? headlines.slice(selectedCategory ? 0 : 1).slice(0, 7)
+            : categoryNews[category]?.slice(0, 7) || [];
+
+        return (
+          <div key={category} className="mb-12">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl sm:text-3xl font-bold border-b-2 border-red-600 pb-2">
+                {category}
+              </h2>
+              <button
+                onClick={() =>
+                  setSelectedCategory(
+                    category === selectedCategory ? "" : category
+                  )
+                }
+                className="text-sm sm:text-base text-red-600 hover:underline font-medium"
+              >
+                {selectedCategory === category ? "Show All" : "See More"}
+              </button>
             </div>
-          </section>
-        )}
-
-        {/* Category Sections with Ads */}
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Main News Column */}
-          <div className="w-full">
-            {(selectedCategory ? [selectedCategory] : categories).map(
-              (category, index) => {
-                const adIndices = getAdPlacementIndices(
-                  selectedCategory ? 1 : categories.length
-                );
-                const showAd = adIndices.includes(index);
-                const newsToDisplay =
-                  category === "Headlines"
-                    ? headlines.slice(selectedCategory ? 0 : 1).slice(0, 7)
-                    : categoryNews[category]?.slice(0, 7) || [];
-
-                return (
-                  <div key={category} className="mb-8">
-                    <div className="flex justify-between items-center mb-4">
-                      <h2 className="text-2xl font-bold border-b-2 border-red-600 pb-2">
-                        {category}
-                      </h2>
-                      <button
-                        onClick={() =>
-                          setSelectedCategory(
-                            category === selectedCategory ? "" : category
-                          )
-                        }
-                        className="text-sm text-red-600 hover:underline font-medium"
-                      >
-                        {selectedCategory === category ? "Show All" : "See More"}
-                      </button>
-                    </div>
-                    {isLoading ? (
-                      <SkeletonLoader darkMode={darkMode} count={7} />
-                    ) : newsToDisplay.length > 0 ? (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {newsToDisplay.map((news) => (
-                          <article
-                            key={news.id}
-                            className={`${
-                              darkMode
-                                ? "bg-gray-800 text-white"
-                                : "bg-white text-black"
-                            } rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300`}
-                          >
-                            <Link
-                              href={`/news/${news.slug}`}
-                              onClick={() => recordView(news.id)}
-                            >
-                              <img
-                                src={news.image}
-                                alt={news.title}
-                                className="w-full h-40 object-cover"
-                                loading="lazy"
-                              />
-                              <div className="p-4">
-                                <span className="inline-block px-2 py-1 text-xs font-semibold text-white bg-red-600 rounded mb-2">
-                                  {news.category}
-                                </span>
-                                <h3 className="text-lg font-bold mb-2">
-                                  {news.title}
-                                </h3>
-                                <div
-                                  className={`mb-3 text-sm leading-relaxed ${
-                                    darkMode ? "text-gray-300" : "text-gray-700"
-                                  }`}
-                                  dangerouslySetInnerHTML={{
-                                    __html: news.excerpt,
-                                  }}
-                                />
-                                <div className="flex justify-between items-center">
-                                  <time
-                                    className="text-xs text-gray-500"
-                                    dateTime={news.date}
-                                  >
-                                    {news.date}
-                                  </time>
-                                  <span className="text-sm text-red-600 hover:underline font-medium">
-                                    Read More
-                                  </span>
-                                </div>
-                              </div>
-                            </Link>
-                          </article>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-center py-8">
-                        <SkeletonLoader/>
-                      </div>
-                    )}
-                    {showAd && !selectedCategory && (
-                      <div className="mt-6 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md text-center animate-pulse">
-                        <Image
-                          src={ads[Math.floor(Math.random() * ads.length)]}
-                          alt="Advertisement"
-                          width={300}
-                          height={100}
-                          className="mx-auto"
+            {isLoading ? (
+              <SkeletonLoader darkMode={darkMode} count={6} />
+            ) : newsToDisplay.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {newsToDisplay.map((news) => (
+                  <article
+                    key={news.id}
+                    className={`${
+                      darkMode
+                        ? "bg-gray-800 text-white"
+                        : "bg-white text-black"
+                    } rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 flex flex-col`}
+                  >
+                    <Link
+                      href={`/news/${news.slug}`}
+                      onClick={() => recordView(news.id)}
+                      className="flex flex-col h-full"
+                    >
+                      <img
+                        src={news.image}
+                        alt={news.title}
+                        className="w-full h-48 object-cover"
+                        loading="lazy"
+                      />
+                      <div className="p-5 flex flex-col flex-grow">
+                        <span className="inline-block px-2 py-1 text-xs font-semibold text-white bg-red-600 rounded mb-3">
+                          {news.category}
+                        </span>
+                        <h3 className="text-lg font-bold mb-2 line-clamp-2">
+                          {news.title}
+                        </h3>
+                        <div
+                          className={`mb-4 text-sm leading-relaxed ${
+                            darkMode ? "text-gray-300" : "text-gray-700"
+                          } line-clamp-3`}
+                          dangerouslySetInnerHTML={{
+                            __html: news.excerpt,
+                          }}
                         />
+                        <div className="flex justify-between items-center mt-auto">
+                          <time
+                            className="text-xs text-gray-500"
+                            dateTime={news.date}
+                          >
+                            {news.date}
+                          </time>
+                          <span className="text-sm text-red-600 hover:underline font-medium">
+                            Read More
+                          </span>
+                        </div>
                       </div>
-                    )}
-                  </div>
-                );
-              }
+                    </Link>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="flex items-center justify-center py-8 text-gray-500">
+                <SkeletonLoader/>
+              </div>
+            )}
+            {showAd && !selectedCategory && (
+              <div className="mt-8 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md text-center">
+                <Image
+                  src={ads[Math.floor(Math.random() * ads.length)]}
+                  alt="Advertisement"
+                  width={728}
+                  height={90}
+                  className="mx-auto w-full max-w-[728px] h-auto"
+                />
+              </div>
             )}
           </div>
-        </div>
-      </main>
+        );
+      }
+    )}
+  </div>
+</main>
 
       {/* Footer */}
       <footer
@@ -548,6 +559,7 @@ export default function DailyPostClone() {
           white-space: nowrap;
         }
       `}</style>
+      
     </div>
   );
 }
