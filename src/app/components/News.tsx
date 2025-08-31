@@ -52,6 +52,8 @@ export default function News({ slug, initialNewsItem }: NewsProps) {
     totalPages: 1,
     limit: 3,
   });
+    const [sidebarOpen, setSidebarOpen] = useState(false); // Sidebar state
+
 
   const sanitizedNewsBody = newsItem ? DOMPurify.sanitize(newsItem.newsBody) : "";
 
@@ -190,13 +192,14 @@ export default function News({ slug, initialNewsItem }: NewsProps) {
         <meta name="apple-mobile-web-app-title" content={newsItem.newsTitle.substring(0, 60)} />
         <link rel="canonical" href={`https://naijadaily.ng/${newsItem.slug}`} />
       </Head>
-
-      <Navbar
+  <Navbar
         categories={categories}
         selectedCategory={selectedCategory}
         setSelectedCategory={setSelectedCategory}
         darkMode={darkMode}
         toggleDarkMode={toggleDarkMode}
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen} // Pass sidebar toggle function
       />
 
       <main className="container mx-auto p-1 lg:px-8 lg:py-6">
