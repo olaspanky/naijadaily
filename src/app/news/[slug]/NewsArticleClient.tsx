@@ -81,6 +81,7 @@ export async function generateMetadata(
 
 export default async function NewsArticlePage({ params }: Props) {
   const slug = params.slug;
+  
 
   // Fetch article data
   const response = await fetch(
@@ -141,13 +142,8 @@ export default async function NewsArticlePage({ params }: Props) {
 
   return (
     <div className="min-h-screen font-serif text-[12pt] bg-gray-50 text-gray-900">
-      <Navbar
-        categories={categories}
-        selectedCategory="Home"
-        setSelectedCategory={() => {}}
-        darkMode={false}
-        toggleDarkMode={() => {}}
-      />
+        {/* Navbar */}
+          
       <main className="container mx-auto p-1 lg:px-8 lg:py-6">
         <div className="flex flex-col lg:flex-row gap-6">
           <div className="w-full lg:w-2/3">
