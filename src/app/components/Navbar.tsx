@@ -5,6 +5,7 @@ import { Menu, Search, X, Sun, Moon, Sidebar } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import logo from "../../../public/ndb.png";
+import { Dispatch, SetStateAction } from "react"; // Import Dispatch and SetStateAction
 
 interface NavbarProps {
   categories: string[];
@@ -12,8 +13,8 @@ interface NavbarProps {
   setSelectedCategory: (category: string) => void;
   darkMode: boolean;
   toggleDarkMode: () => void;
-  sidebarOpen: boolean; // Changed from setSidebarOpen to track state
-  setSidebarOpen: (open: boolean) => void;
+  sidebarOpen: boolean;
+  setSidebarOpen: Dispatch<SetStateAction<boolean>>; // Updated type
 }
 
 export default function Navbar({
