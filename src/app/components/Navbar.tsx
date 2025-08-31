@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Menu, Search, X, Sun, Moon } from "lucide-react";
+import { Menu, Search, X, Sun, Moon, Sidebar } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import logo from "../../../public/ndb.png";
@@ -12,6 +12,8 @@ interface NavbarProps {
   setSelectedCategory: (category: string) => void;
   darkMode: boolean;
   toggleDarkMode: () => void;
+  sidebarOpen: boolean; // Changed from setSidebarOpen to track state
+  setSidebarOpen: (open: boolean) => void;
 }
 
 export default function Navbar({
@@ -20,6 +22,8 @@ export default function Navbar({
   setSelectedCategory,
   darkMode,
   toggleDarkMode,
+  sidebarOpen, // Now receiving the current state
+  setSidebarOpen,
 }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -31,6 +35,10 @@ export default function Navbar({
   const handleHomeClick = () => {
     setSelectedCategory(""); // Reset to default view
     setMobileMenuOpen(false); // Close mobile menu
+  };
+
+  const handleSidebarToggle = () => {
+    setSidebarOpen(!sidebarOpen); // Toggle sidebar open/close
   };
 
   return (
@@ -48,6 +56,14 @@ export default function Navbar({
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+            {/* Sidebar Toggle Button */}
+            <button
+              className="p-2 hover:text-gray-600 hover:bg-gray-50 "
+              onClick={handleSidebarToggle}
+              title={sidebarOpen ? "Close Categories Sidebar" : "Open Categories Sidebar"}
+            >
+              <Sidebar size={20} />
             </button>
             <Link href="/" onClick={handleHomeClick} className="flex items-center">
               <Image
@@ -91,12 +107,7 @@ export default function Navbar({
             <button className="p-2 hover:text-gray-600">
               <Search size={20} />
             </button>
-            <button
-              className="p-2 hover:text-gray-600"
-              onClick={toggleDarkMode}
-            >
-              {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-            </button>
+           
           </div>
         </div>
       </div>

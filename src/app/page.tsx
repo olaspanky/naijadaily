@@ -6,6 +6,7 @@ import Link from "next/link";
 import Navbar from "../app/components/Navbar";
 import Head from "next/head";
 import SkeletonLoader from "../app/components/SkeletonLoader";
+import { IoClose } from "react-icons/io5";
 
 // Helper functions
 const generateSlug = (title: string) =>
@@ -19,14 +20,20 @@ export default function DailyPostClone() {
     {}
   );
   const [categories, setCategories] = useState<string[]>([]);
+  const [allCategories, setAllCategories] = useState<string[]>([]); // Store all categories for sidebar
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>(""); // Track selected category
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Sidebar state
+
   const limit = 7; // Limit to 7 articles per category
   const defaultTitle = "Naija Daily - Latest Nigerian News";
   const defaultDescription =
     "Stay updated with the latest news from Nigeria in politics, business, entertainment, sports, and more.";
   const defaultImage = "https://naijadaily.ng/public/ndb.png";
   const ads = ["/assets/ad2.jpeg", "/assets/ad3.jpeg"]; // Ad images
+
+  // Define the specific categories to show on the landing page in order
+  const landingPageCategories = ["News", "Metro", "Politics", "Sport", "Entertainment", "Business"];
 
 interface NewsItem {
   id: string;
@@ -106,25 +113,38 @@ interface NewsItem {
           const categoryNames = result.data.map(
             (item: { categoryName: string }) => item.categoryName
           );
-          setCategories(["Headlines", ...categoryNames]); // Add Headlines as the first category
+          
+          // Store all categories for sidebar
+          setAllCategories(["Headlines", ...categoryNames]);
+          
+          // Filter and order categories based on landingPageCategories
+          const filteredCategories = landingPageCategories.filter(cat => 
+            categoryNames.some((apiCat: string) => 
+              apiCat.toLowerCase() === cat.toLowerCase()
+            )
+          );
+          setCategories(["Headlines", ...filteredCategories]); // Add Headlines as the first category
         } else {
           setCategories(["Headlines"]);
+          setAllCategories(["Headlines"]);
         }
       } catch (error) {
         console.error("Error fetching categories:", error);
         setCategories(["Headlines"]);
+        setAllCategories(["Headlines"]);
       }
     };
     fetchCategories();
   }, []);
 
-  // Fetch news for each category
+  // Fetch news for each category (now uses allCategories for fetching all category data)
  useEffect(() => {
   const fetchCategoryNews = async () => {
     setIsLoading(true);
     try {
       const newsByCategory: { [key: string]: NewsItem[] } = {};
-      for (const category of categories.filter((cat) => cat !== "Headlines")) {
+      // Fetch news for all categories (excluding Headlines) so sidebar categories have data
+      for (const category of allCategories.filter((cat) => cat !== "Headlines")) {
         const response = await fetch(
           `https://news-app-three-lyart.vercel.app/news-app/published?category=${encodeURIComponent(
             category
@@ -163,10 +183,10 @@ interface NewsItem {
       setIsLoading(false);
     }
   };
-  if (categories.length > 0) {
+  if (allCategories.length > 0) {
     fetchCategoryNews();
   }
-}, [categories]);
+}, [allCategories]);
   // Record a view
   const recordView = async (newsId: string): Promise<void> => {
     try {
@@ -307,6 +327,8 @@ interface NewsItem {
         <link rel="canonical" href="https://naijadaily.ng" />
       </Head>
 
+     
+
       {/* Navbar */}
       <Navbar
         categories={categories}
@@ -314,7 +336,72 @@ interface NewsItem {
         setSelectedCategory={setSelectedCategory}
         darkMode={darkMode}
         toggleDarkMode={toggleDarkMode}
+           sidebarOpen={sidebarOpen}
+  setSidebarOpen={setSidebarOpen} // Pass sidebar toggle function
       />
+
+      {/* Sidebar */}
+      <div className={`fixed top-0 left-0 h-full w-64 z-40 transition-transform duration-300 ${
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      } ${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'} shadow-lg`}>
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex justify-between items-center">
+            <h2 className="text-lg font-bold">All Categories</h2>
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+            >
+              
+
+              <IoClose size={20} />
+            </button>
+          </div>
+        </div>
+        <nav className="p-4 overflow-y-auto max-h-[calc(100vh-80px)]">
+          <div className="space-y-2">
+            <button
+              onClick={() => {
+                setSelectedCategory("");
+                setSidebarOpen(false);
+              }}
+              className={`w-full text-left py-2 px-3 rounded transition-colors duration-200 ${
+                selectedCategory === ""
+                  ? "bg-red-600 text-white font-bold"
+                  : "hover:bg-gray-100 dark:hover:bg-gray-700"
+              }`}
+            >
+              Home
+            </button>
+            {allCategories.map((category, index) => (
+              <button
+                key={`sidebar-${category}-${index}`}
+                onClick={() => {
+                  setSelectedCategory(category === selectedCategory ? "" : category);
+                  setSidebarOpen(false);
+                }}
+                className={`w-full text-left py-2 px-3 rounded transition-colors duration-200 ${
+                  selectedCategory === category
+                    ? "bg-red-600 text-white font-bold"
+                    : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                }`}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+        </nav>
+      </div>
+
+      {/* Sidebar Overlay */}
+    {sidebarOpen && (
+  <div
+    className="fixed inset-0 bg-white/80 backdrop-blur-sm z-30"
+    style={{
+      background: 'linear-gradient(135deg, rgba(247, 243, 243, 0.7), rgba(250, 246, 246, 0.9))',
+    }}
+    onClick={() => setSidebarOpen(false)}
+  />
+)}
 
       {/* Breaking News Ticker */}
      
