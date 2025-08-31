@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import { Menu, Search, X, Sun, Moon, Sidebar } from "lucide-react";
 import Image from "next/image";
@@ -23,23 +21,23 @@ export default function Navbar({
   setSelectedCategory,
   darkMode,
   toggleDarkMode,
-  sidebarOpen, // Now receiving the current state
+  sidebarOpen,
   setSidebarOpen,
 }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleCategoryClick = (category: string) => {
     setSelectedCategory(category === selectedCategory ? "" : category);
-    setMobileMenuOpen(false); // Close mobile menu on category select
+    setMobileMenuOpen(false);
   };
 
   const handleHomeClick = () => {
-    setSelectedCategory(""); // Reset to default view
-    setMobileMenuOpen(false); // Close mobile menu
+    setSelectedCategory("");
+    setMobileMenuOpen(false);
   };
 
   const handleSidebarToggle = () => {
-    setSidebarOpen(!sidebarOpen); // Toggle sidebar open/close
+    setSidebarOpen(!sidebarOpen); // This works fine with the updated type
   };
 
   return (
@@ -50,7 +48,6 @@ export default function Navbar({
     >
       <div className="container mx-auto px-4 lg:px-8 py-2 lg:py-4">
         <div className="flex items-center justify-between">
-          {/* Logo and mobile menu */}
           <div className="flex items-center space-x-4">
             <button
               className="lg:hidden p-2 hover:text-gray-600"
@@ -58,9 +55,8 @@ export default function Navbar({
             >
               {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
-            {/* Sidebar Toggle Button */}
             <button
-              className="p-2 hover:text-gray-600 hover:bg-gray-50 "
+              className="p-2 hover:text-gray-600 hover:bg-gray-50"
               onClick={handleSidebarToggle}
               title={sidebarOpen ? "Close Categories Sidebar" : "Open Categories Sidebar"}
             >
@@ -75,8 +71,6 @@ export default function Navbar({
               />
             </Link>
           </div>
-
-          {/* Nav Items */}
           <nav className="hidden lg:flex space-x-6 items-center text-sm font-semibold uppercase">
             <button
               onClick={handleHomeClick}
@@ -102,18 +96,13 @@ export default function Navbar({
               </button>
             ))}
           </nav>
-
-          {/* Search and Dark Mode Toggle */}
           <div className="flex items-center space-x-4">
             <button className="p-2 hover:text-gray-600">
               <Search size={20} />
             </button>
-           
           </div>
         </div>
       </div>
-
-      {/* Mobile nav */}
       {mobileMenuOpen && (
         <div
           className={`lg:hidden px-4 py-4 space-y-2 border-t border-gray-200 ${
