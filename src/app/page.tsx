@@ -318,7 +318,7 @@ export default function DailyPostClone() {
       href={`/category/${encodeURIComponent(category)}`}
       className="text-red-600 hover:underline font-semibold transition"
     >
-      See All →
+      See more →
     </Link>
   )}
 </div>
