@@ -265,7 +265,7 @@ export default function DailyPostClone() {
         </div>
       </div>
 
-      <main className="container mx-auto px-4 py-8 max-w-7xl">
+      <main className="container  mx-auto px-4 py-8 max-w-7xl">
         {selectedCategory && (
           <button onClick={() => setSelectedCategory("")} className="mb-8 text-red-600 hover:underline font-semibold">
             ← Back to Home
@@ -308,18 +308,20 @@ export default function DailyPostClone() {
 
             return (
               <section key={category}>
-                <div className="flex justify-between items-center mb-8">
-                  <h2 className="text-3xl md:text-4xl font-bold border-b-4 border-red-600 inline-block pb-2">{category}</h2>
-                  {!isHeadlines && (
-                    <button
-                      onClick={() => setSelectedCategory(selectedCategory === category ? "" : category)}
-                      className="text-red-600 hover:underline font-semibold"
-                    >
-                      {selectedCategory === category ? "View Less" : "See All →"}
-                    </button>
-                  )}
-                </div>
+              <div className="flex justify-between items-center mb-8">
+  <h2 className="text-3xl md:text-4xl font-bold border-b-4 border-red-600 inline-block pb-2">
+    {category}
+  </h2>
 
+  {!isHeadlines && (
+    <Link
+      href={`/category/${encodeURIComponent(category)}`}
+      className="text-red-600 hover:underline font-semibold transition"
+    >
+      See All →
+    </Link>
+  )}
+</div>
                 {isLoading ? (
                   <SkeletonLoader count={6} darkMode={darkMode} />
                 ) : newsList.length > 0 ? (

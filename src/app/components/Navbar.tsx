@@ -49,12 +49,12 @@ export default function Navbar({
       <div className="container mx-auto px-4 lg:px-8 py-2 lg:py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <button
+            {/* <button
               className="lg:hidden p-2 hover:text-gray-600"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
+            </button> */}
             <button
               className="p-2 hover:text-gray-600 hover:bg-gray-50"
               onClick={handleSidebarToggle}
