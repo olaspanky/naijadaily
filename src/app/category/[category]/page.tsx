@@ -58,13 +58,14 @@ export default function CategoryPage() {
       console.log('Fetching page:', currentPage, 'for category:', category);
       setIsLoading(true);
       try {
-        const skip = (currentPage - 1) * ITEMS_PER_PAGE;
-        console.log('Skip value:', skip, 'Limit:', ITEMS_PER_PAGE);
+        // Use pageNo and pageSize parameters
         const res = await fetch(
           `https://naija-daily-api.onrender.com/news-app/published?category=${encodeURIComponent(
             category
-          )}&limit=${ITEMS_PER_PAGE}&skip=${skip}`
+          )}&pageSize=${ITEMS_PER_PAGE}&pageNo=${currentPage}`
         );
+        
+        console.log('Request URL:', res.url);
 
         if (!res.ok) throw new Error("Failed to fetch news");
 
