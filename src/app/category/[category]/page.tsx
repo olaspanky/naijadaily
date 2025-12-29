@@ -44,14 +44,22 @@ export default function CategoryPage() {
 
   const toggleDarkMode = () => setDarkMode((prev) => !prev);
 
+  // Reset to page 1 when category changes
+  useEffect(() => {
+    console.log('Category changed to:', category);
+    setCurrentPage(1);
+  }, [category]);
+
   // Fetch paginated news for this category
   useEffect(() => {
     if (!category) return;
 
     const fetchCategoryNews = async () => {
+      console.log('Fetching page:', currentPage, 'for category:', category);
       setIsLoading(true);
       try {
         const skip = (currentPage - 1) * ITEMS_PER_PAGE;
+        console.log('Skip value:', skip, 'Limit:', ITEMS_PER_PAGE);
         const res = await fetch(
           `https://naija-daily-api.onrender.com/news-app/published?category=${encodeURIComponent(
             category
@@ -61,6 +69,7 @@ export default function CategoryPage() {
         if (!res.ok) throw new Error("Failed to fetch news");
 
         const json = await res.json();
+        console.log('API Response:', json);
 
         if (json.success && json.data) {
           const mapped: NewsItem[] = json.data
@@ -134,7 +143,8 @@ export default function CategoryPage() {
   };
 
   const handlePageChange = (newPage: number) => {
-    if (newPage >= 1 && newPage <= totalPages) {
+    console.log('Changing page from', currentPage, 'to', newPage);
+    if (newPage >= 1 && newPage <= totalPages && newPage !== currentPage) {
       setCurrentPage(newPage);
     }
   };
