@@ -265,7 +265,7 @@ export default function DailyPostClone() {
         </div>
       </div>
 
-      <main className="container  mx-auto px-4 py-8 max-w-7xl">
+      <main className="container min-h-screen  mx-auto px-4 py-8 max-w-7xl">
         {selectedCategory && (
           <button onClick={() => setSelectedCategory("")} className="mb-8 text-red-600 hover:underline font-semibold">
             ← Back to Home
