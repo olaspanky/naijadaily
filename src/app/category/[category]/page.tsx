@@ -127,7 +127,6 @@ export default function CategoryPage() {
       }`}
       style={{ fontFamily: "'Times New Roman', Times, serif" }}
     >
-      <Navbar darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
 
       <main className="container mx-auto px-4 py-8 max-w-7xl">
         <button
