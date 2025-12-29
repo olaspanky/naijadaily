@@ -39,7 +39,15 @@ export default function CategoryPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [darkMode] = useState(false); // You can sync this with global state if needed
+
+   const [categoryNews, setCategoryNews] = useState<{ [key: string]: NewsItem[] }>({});
+    const [categories, setCategories] = useState<string[]>([]);
+    const [allCategories, setAllCategories] = useState<string[]>([]);
+    const [selectedCategory, setSelectedCategory] = useState<string>("");
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+      const [darkMode, setDarkMode] = useState(false);
+
+  const toggleDarkMode = () => setDarkMode((prev) => !prev);
 
   // Fetch news for this category with pagination
   useEffect(() => {
@@ -114,7 +122,15 @@ export default function CategoryPage() {
       }`}
       style={{ fontFamily: "'Times New Roman', Times, serif" }}
     >
-      <Navbar /* pass your props */ />
+  <Navbar
+        categories={categories}
+        selectedCategory={selectedCategory}
+        setSelectedCategory={setSelectedCategory}
+        darkMode={darkMode}
+        toggleDarkMode={toggleDarkMode}
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+      />
 
       <main className="container mx-auto px-4 py-8 max-w-7xl">
         <button
