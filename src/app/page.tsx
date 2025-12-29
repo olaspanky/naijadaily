@@ -313,14 +313,14 @@ export default function DailyPostClone() {
     {category}
   </h2>
 
-  {!isHeadlines && (
+  {/* {!isHeadlines && (
     <Link
       href={`/category/${encodeURIComponent(category)}`}
       className="text-red-600 hover:underline font-semibold transition"
     >
       See more →
     </Link>
-  )}
+  )} */}
 </div>
                 {isLoading ? (
                   <SkeletonLoader count={6} darkMode={darkMode} />
@@ -355,6 +355,15 @@ export default function DailyPostClone() {
                         </Link>
                       </article>
                     ))}
+
+                    {!isHeadlines && (
+    <Link
+      href={`/category/${encodeURIComponent(category)}`}
+      className="text-red-600 hover:underline font-semibold transition"
+    >
+      See more →
+    </Link>
+  )}
                   </div>
                 ) : (
                   <p className="text-center py-12 text-gray-500 text-lg">No articles available.</p>
