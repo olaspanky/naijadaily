@@ -52,7 +52,7 @@ async function fetchArticleIdBySlug(slug: string): Promise<string | null> {
   while (true) {
     try {
       const response = await fetch(
-        `https://news-app-three-lyart.vercel.app/news-app/published?page=${currentPage}&limit=${limit}`,
+        `https://naija-daily-api.onrender.com/news-app/published?page=${currentPage}&limit=${limit}`,
         { next: { revalidate: 60 } }
       );
       if (!response.ok) {
@@ -93,7 +93,7 @@ async function fetchArticleIdBySlug(slug: string): Promise<string | null> {
 async function fetchArticleById(id: string): Promise<NewsItem | null> {
   try {
     const response = await fetch(
-      `https://news-app-three-lyart.vercel.app/news-app/${id}`,
+      `https://naija-daily-api.onrender.com/news-app/${id}`,
       { next: { revalidate: 60 } }
     );
     if (!response.ok) {
@@ -251,7 +251,7 @@ export default async function NewsArticlePage({ params }: Props) {
   let similarPosts: NewsItem[] = [];
   try {
     const response = await fetch(
-      `https://news-app-three-lyart.vercel.app/news-app/published?category=${encodeURIComponent(
+      `https://naija-daily-api.onrender.com/news-app/published?category=${encodeURIComponent(
         article.category
       )}&limit=4`,
       { next: { revalidate: 60 } }

@@ -2,7 +2,7 @@ import { Metadata } from "next";
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   try {
-    const res = await fetch("https://news-app-three-lyart.vercel.app/news-app/published", {
+    const res = await fetch("https://naija-daily-api.onrender.com/news-app/published", {
       cache: "no-store",
     });
     

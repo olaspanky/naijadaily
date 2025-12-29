@@ -63,7 +63,7 @@ export default function News({ slug, initialNewsItem }: NewsProps) {
       try {
         if (newsItem) {
           // Fetch categories
-          const categoryResponse = await fetch("https://news-app-three-lyart.vercel.app/news-app-category");
+          const categoryResponse = await fetch("https://naija-daily-api.onrender.com/news-app-category");
           const categoryResult = await categoryResponse.json();
           if (categoryResult.success && categoryResult.data) {
             setCategories(["Home", ...categoryResult.data.map((item: { categoryName: string }) => item.categoryName)]);
@@ -71,7 +71,7 @@ export default function News({ slug, initialNewsItem }: NewsProps) {
 
           // Fetch related articles
           const relatedResponse = await fetch(
-            `https://news-app-three-lyart.vercel.app/news-app/published?category=${newsItem.category}&page=${pagination.currentPage}&limit=${pagination.limit}`
+            `https://naija-daily-api.onrender.com/news-app/published?category=${newsItem.category}&page=${pagination.currentPage}&limit=${pagination.limit}`
           );
           const relatedResult = await relatedResponse.json();
           if (relatedResult.success && relatedResult.data) {

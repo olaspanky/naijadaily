@@ -59,7 +59,7 @@ export default function CategoryPage() {
 useEffect(() => {
   const fetchCategories = async () => {
     try {
-      const response = await fetch("https://news-app-three-lyart.vercel.app/news-app-category");
+      const response = await fetch("https://naija-daily-api.onrender.com/news-app-category");
       const result = await response.json();
       if (result.success && result.data) {
         const categoryNames = result.data.map((item: { categoryName: string }) => item.categoryName);
@@ -78,7 +78,7 @@ useEffect(() => {
     const fetchNews = async () => {
       try {
         setLoading(true);
-        const response = await fetch("https://news-app-three-lyart.vercel.app/news-app/published");
+        const response = await fetch("https://naija-daily-api.onrender.com/news-app/published");
         const result = await response.json();
         if (result.success && result.data) {
           const filteredNews = result.data
@@ -119,7 +119,7 @@ useEffect(() => {
   const recordView = async (newsId: string): Promise<void> => {
     try {
       const response = await fetch(
-        `https://news-app-three-lyart.vercel.app/news-app/news-view/${newsId}`,
+        `https://naija-daily-api.onrender.com/news-app/news-view/${newsId}`,
         { method: "POST" }
       );
       const result: RecordViewResponse = await response.json();

@@ -42,7 +42,7 @@ export async function generateMetadata(
 
   // Fetch post information
   const response = await fetch(
-    "https://news-app-three-lyart.vercel.app/news-app/published"
+    "https://naija-daily-api.onrender.com/news-app/published"
   );
   const result = await response.json();
   const article = result.data?.find(
@@ -85,7 +85,7 @@ export default async function NewsArticlePage({ params }: Props) {
 
   // Fetch article data
   const response = await fetch(
-    "https://news-app-three-lyart.vercel.app/news-app/published"
+    "https://naija-daily-api.onrender.com/news-app/published"
   );
   const result = await response.json();
   const article = result.data?.find(
@@ -112,7 +112,7 @@ export default async function NewsArticlePage({ params }: Props) {
 
   // Fetch related articles
   const relatedResponse = await fetch(
-    `https://news-app-three-lyart.vercel.app/news-app/published?category=${article.category}&page=1&limit=3`
+    `https://naija-daily-api.onrender.com/news-app/published?category=${article.category}&page=1&limit=3`
   );
   const relatedResult = await relatedResponse.json();
   const relatedArticles = relatedResult.data
@@ -129,7 +129,7 @@ export default async function NewsArticlePage({ params }: Props) {
 
   // Fetch categories
   const categoryResponse = await fetch(
-    "https://news-app-three-lyart.vercel.app/news-app-category"
+    "https://naija-daily-api.onrender.com/news-app-category"
   );
   const categoryResult = await categoryResponse.json();
   const categories = ["Home", ...(categoryResult.data?.map((item: { categoryName: string }) => item.categoryName) || [])];
