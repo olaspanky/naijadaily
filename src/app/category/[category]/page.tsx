@@ -35,26 +35,37 @@ export default function CategoryPage() {
   const router = useRouter();
   const category = decodeURIComponent(params.category as string);
 
-  const [allNews, setAllNews] = useState<NewsItem[]>([]);
+  const [news, setNews] = useState<NewsItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const [darkMode, setDarkMode] = useState(false);
 
   const toggleDarkMode = () => setDarkMode((prev) => !prev);
 
-  // Fetch ALL news for this category once
+  // Reset to page 1 when category changes
+  useEffect(() => {
+    console.log('Category changed to:', category);
+    setCurrentPage(1);
+  }, [category]);
+
+  // Fetch paginated news for this category
   useEffect(() => {
     if (!category) return;
 
     const fetchCategoryNews = async () => {
+      console.log('Fetching page:', currentPage, 'for category:', category);
       setIsLoading(true);
       try {
-        // Fetch a large batch (or all) - adjust pageSize as needed
+        // Use pageNo and pageSize parameters
         const res = await fetch(
           `https://naija-daily-api.onrender.com/news-app/published?category=${encodeURIComponent(
             category
-          )}&pageSize=1000&pageNo=1`
+          )}&limit=${ITEMS_PER_PAGE}&page=${currentPage}`
         );
+        
+        console.log('Request URL:', res.url);
 
         if (!res.ok) throw new Error("Failed to fetch news");
 
@@ -80,32 +91,41 @@ export default function CategoryPage() {
               rawDate: item.createdAt,
               views: item.views || 0,
             }))
-            // Sort newest first
+            // Sort newest first (in case API doesn't)
             .sort((a: NewsItem, b: NewsItem) => 
               new Date(b.rawDate).getTime() - new Date(a.rawDate).getTime()
             );
 
-          setAllNews(mapped);
+          setNews(mapped);
+          
+          // Calculate total pages from API response or total count
+          if (json.totalPages) {
+            setTotalPages(json.totalPages);
+          } else if (json.total) {
+            setTotalItems(json.total);
+            setTotalPages(Math.ceil(json.total / ITEMS_PER_PAGE));
+          } else {
+            // Fallback: if we got full page of results, assume there might be more
+            setTotalPages(mapped.length === ITEMS_PER_PAGE ? currentPage + 1 : currentPage);
+          }
+          
+          // Scroll to top when page changes
+          window.scrollTo({ top: 0, behavior: "smooth" });
         } else {
-          setAllNews([]);
+          setNews([]);
+          setTotalPages(1);
         }
       } catch (err) {
         console.error("Error loading category news:", err);
-        setAllNews([]);
+        setNews([]);
+        setTotalPages(1);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchCategoryNews();
-    setCurrentPage(1); // Reset to page 1 when category changes
-  }, [category]);
-
-  // Calculate pagination values
-  const totalPages = Math.ceil(allNews.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentNews = allNews.slice(startIndex, endIndex);
+  }, [category, currentPage]);
 
   const recordView = async (newsId: string) => {
     try {
@@ -115,7 +135,7 @@ export default function CategoryPage() {
       );
       if (!res.ok) return;
       const { views } = await res.json();
-      setAllNews((prev) =>
+      setNews((prev) =>
         prev.map((n) => (n.id === newsId ? { ...n, views } : n))
       );
     } catch (err) {
@@ -127,7 +147,6 @@ export default function CategoryPage() {
     console.log('Changing page from', currentPage, 'to', newPage);
     if (newPage >= 1 && newPage <= totalPages && newPage !== currentPage) {
       setCurrentPage(newPage);
-      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
@@ -153,10 +172,10 @@ export default function CategoryPage() {
 
         {isLoading ? (
           <SkeletonLoader count={15} darkMode={darkMode} />
-        ) : currentNews.length > 0 ? (
+        ) : news.length > 0 ? (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-              {currentNews.map((item) => (
+              {news.map((item) => (
                 <article
                   key={item.id}
                   className={`rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 ${
@@ -174,7 +193,7 @@ export default function CategoryPage() {
                       width={600}
                       height={400}
                       className="w-full h-56 object-cover"
-                      priority={currentNews.indexOf(item) < 6}
+                      priority={news.indexOf(item) < 6} // Priority for first row
                     />
                     <div className="p-6">
                       <h3 className="text-xl font-bold mb-3 line-clamp-2">
@@ -216,11 +235,7 @@ export default function CategoryPage() {
                     <>
                       <button
                         onClick={() => handlePageChange(1)}
-                        className={`px-4 py-2 rounded-lg transition ${
-                          darkMode
-                            ? "bg-gray-700 hover:bg-gray-600"
-                            : "bg-gray-200 hover:bg-gray-300"
-                        }`}
+                        className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
                       >
                         1
                       </button>
@@ -245,9 +260,7 @@ export default function CategoryPage() {
                         className={`px-4 py-2 rounded-lg transition font-medium ${
                           currentPage === page
                             ? "bg-red-600 text-white"
-                            : darkMode
-                            ? "bg-gray-700 hover:bg-gray-600"
-                            : "bg-gray-200 hover:bg-gray-300"
+                            : "bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
                         }`}
                       >
                         {page}
@@ -260,11 +273,7 @@ export default function CategoryPage() {
                       <span className="px-2">...</span>
                       <button
                         onClick={() => handlePageChange(totalPages)}
-                        className={`px-4 py-2 rounded-lg transition ${
-                          darkMode
-                            ? "bg-gray-700 hover:bg-gray-600"
-                            : "bg-gray-200 hover:bg-gray-300"
-                        }`}
+                        className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
                       >
                         {totalPages}
                       </button>
@@ -281,11 +290,6 @@ export default function CategoryPage() {
                 </button>
               </div>
             )}
-
-            {/* Show total items count */}
-            <p className="text-center mt-4 text-gray-500">
-              Showing {startIndex + 1}-{Math.min(endIndex, allNews.length)} of {allNews.length} articles
-            </p>
           </>
         ) : (
           <div className="text-center py-20">
