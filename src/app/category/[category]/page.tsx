@@ -39,6 +39,7 @@ export default function CategoryPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const [darkMode, setDarkMode] = useState(false);
 
   const toggleDarkMode = () => setDarkMode((prev) => !prev);
@@ -86,8 +87,19 @@ export default function CategoryPage() {
             );
 
           setNews(mapped);
-          setTotalPages(json.totalPages || 1);
-          // Optional: scroll to top when page changes
+          
+          // Calculate total pages from API response or total count
+          if (json.totalPages) {
+            setTotalPages(json.totalPages);
+          } else if (json.total) {
+            setTotalItems(json.total);
+            setTotalPages(Math.ceil(json.total / ITEMS_PER_PAGE));
+          } else {
+            // Fallback: if we got full page of results, assume there might be more
+            setTotalPages(mapped.length === ITEMS_PER_PAGE ? currentPage + 1 : currentPage);
+          }
+          
+          // Scroll to top when page changes
           window.scrollTo({ top: 0, behavior: "smooth" });
         } else {
           setNews([]);
@@ -96,6 +108,7 @@ export default function CategoryPage() {
       } catch (err) {
         console.error("Error loading category news:", err);
         setNews([]);
+        setTotalPages(1);
       } finally {
         setIsLoading(false);
       }
@@ -117,6 +130,12 @@ export default function CategoryPage() {
       );
     } catch (err) {
       console.error("Failed to record view:", err);
+    }
+  };
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
     }
   };
 
@@ -192,19 +211,67 @@ export default function CategoryPage() {
             {totalPages > 1 && (
               <div className="flex flex-wrap justify-center items-center gap-3 mt-12">
                 <button
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
                   className="px-6 py-3 rounded-lg bg-red-600 text-white disabled:bg-gray-400 disabled:cursor-not-allowed hover:bg-red-700 transition font-medium"
                 >
                   Previous
                 </button>
 
-                <span className="text-lg font-medium px-4">
-                  Page {currentPage} of {totalPages}
-                </span>
+                <div className="flex items-center gap-2">
+                  {/* Show first page */}
+                  {currentPage > 3 && (
+                    <>
+                      <button
+                        onClick={() => handlePageChange(1)}
+                        className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                      >
+                        1
+                      </button>
+                      <span className="px-2">...</span>
+                    </>
+                  )}
+
+                  {/* Show nearby pages */}
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter(
+                      (page) =>
+                        page === currentPage ||
+                        page === currentPage - 1 ||
+                        page === currentPage + 1 ||
+                        (currentPage <= 2 && page <= 3) ||
+                        (currentPage >= totalPages - 1 && page >= totalPages - 2)
+                    )
+                    .map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => handlePageChange(page)}
+                        className={`px-4 py-2 rounded-lg transition font-medium ${
+                          currentPage === page
+                            ? "bg-red-600 text-white"
+                            : "bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+
+                  {/* Show last page */}
+                  {currentPage < totalPages - 2 && (
+                    <>
+                      <span className="px-2">...</span>
+                      <button
+                        onClick={() => handlePageChange(totalPages)}
+                        className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                      >
+                        {totalPages}
+                      </button>
+                    </>
+                  )}
+                </div>
 
                 <button
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
                   className="px-6 py-3 rounded-lg bg-red-600 text-white disabled:bg-gray-400 disabled:cursor-not-allowed hover:bg-red-700 transition font-medium"
                 >
