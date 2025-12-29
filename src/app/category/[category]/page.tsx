@@ -28,7 +28,7 @@ interface NewsItem {
   views?: number;
 }
 
-const ITEMS_PER_PAGE = 15; // You can change this
+const ITEMS_PER_PAGE = 15;
 
 export default function CategoryPage() {
   const params = useParams();
@@ -39,18 +39,14 @@ export default function CategoryPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-
-   const [categoryNews, setCategoryNews] = useState<{ [key: string]: NewsItem[] }>({});
-    const [categories, setCategories] = useState<string[]>([]);
-    const [allCategories, setAllCategories] = useState<string[]>([]);
-    const [selectedCategory, setSelectedCategory] = useState<string>("");
-    const [sidebarOpen, setSidebarOpen] = useState(false);
-      const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
 
   const toggleDarkMode = () => setDarkMode((prev) => !prev);
 
-  // Fetch news for this category with pagination
+  // Fetch paginated news for this category
   useEffect(() => {
+    if (!category) return;
+
     const fetchCategoryNews = async () => {
       setIsLoading(true);
       try {
@@ -61,12 +57,12 @@ export default function CategoryPage() {
           )}&limit=${ITEMS_PER_PAGE}&skip=${skip}`
         );
 
-        if (!res.ok) throw new Error("Failed to fetch");
+        if (!res.ok) throw new Error("Failed to fetch news");
 
-        const { success, data, total } = await res.json(); // Assume your API returns { data: [...], total: number }
+        const json = await res.json();
 
-        if (success && data) {
-          const mapped: NewsItem[] = data
+        if (json.success && json.data) {
+          const mapped: NewsItem[] = json.data
             .map((item: any) => ({
               id: item._id,
               title: item.newsTitle,
@@ -74,8 +70,8 @@ export default function CategoryPage() {
               category: item.category || category,
               image: item.newsImage || "/placeholder.jpg",
               excerpt: item.newsBody
-                ? item.newsBody.replace(/<[^>]*>/g, " ").substring(0, 150) + "..."
-                : "",
+                ? item.newsBody.replace(/<[^>]*>/g, " ").trim().substring(0, 150) + "..."
+                : "No excerpt available.",
               date: new Date(item.createdAt).toLocaleDateString("en-US", {
                 month: "long",
                 day: "numeric",
@@ -84,58 +80,59 @@ export default function CategoryPage() {
               rawDate: item.createdAt,
               views: item.views || 0,
             }))
-            .sort((a: NewsItem, b: NewsItem) => new Date(b.rawDate).getTime() - new Date(a.rawDate).getTime());
+            // Sort newest first (in case API doesn't)
+            .sort((a: NewsItem, b: NewsItem) => 
+              new Date(b.rawDate).getTime() - new Date(a.rawDate).getTime()
+            );
 
           setNews(mapped);
-          setTotalPages(Math.ceil(total / ITEMS_PER_PAGE) || 1);
+          setTotalPages(json.totalPages || 1);
+          // Optional: scroll to top when page changes
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        } else {
+          setNews([]);
+          setTotalPages(1);
         }
       } catch (err) {
-        console.error("Error loading category:", err);
+        console.error("Error loading category news:", err);
         setNews([]);
       } finally {
         setIsLoading(false);
       }
     };
 
-    if (category) fetchCategoryNews();
+    fetchCategoryNews();
   }, [category, currentPage]);
 
   const recordView = async (newsId: string) => {
     try {
-      const res = await fetch(`https://naija-daily-api.onrender.com/news-app/news-view/${newsId}`, {
-        method: "POST",
-      });
+      const res = await fetch(
+        `https://naija-daily-api.onrender.com/news-app/news-view/${newsId}`,
+        { method: "POST" }
+      );
       if (!res.ok) return;
       const { views } = await res.json();
       setNews((prev) =>
         prev.map((n) => (n.id === newsId ? { ...n, views } : n))
       );
     } catch (err) {
-      console.error("View record failed:", err);
+      console.error("Failed to record view:", err);
     }
   };
 
   return (
     <div
-      className={`min-h-screen font-serif text-[12pt] ${
+      className={`min-h-screen font-serif text-[12pt] transition-colors duration-300 ${
         darkMode ? "bg-gray-900 text-gray-100" : "bg-gray-50 text-gray-900"
       }`}
       style={{ fontFamily: "'Times New Roman', Times, serif" }}
     >
-  <Navbar
-        categories={categories}
-        selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
-        darkMode={darkMode}
-        toggleDarkMode={toggleDarkMode}
-        sidebarOpen={sidebarOpen}
-        setSidebarOpen={setSidebarOpen}
-      />
+      <Navbar darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
 
       <main className="container mx-auto px-4 py-8 max-w-7xl">
         <button
           onClick={() => router.back()}
-          className="mb-8 text-red-600 hover:underline font-semibold"
+          className="mb-8 text-red-600 hover:underline font-semibold flex items-center gap-2"
         >
           ← Back
         </button>
@@ -145,31 +142,42 @@ export default function CategoryPage() {
         </h1>
 
         {isLoading ? (
-          <SkeletonLoader count={12} darkMode={darkMode} />
+          <SkeletonLoader count={15} darkMode={darkMode} />
         ) : news.length > 0 ? (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
               {news.map((item) => (
                 <article
                   key={item.id}
-                  className={`rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all ${
+                  className={`rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 ${
                     darkMode ? "bg-gray-800" : "bg-white"
                   }`}
                 >
-                  <Link href={`/news/${item.slug}`} onClick={() => recordView(item.id)}>
+                  <Link
+                    href={`/news/${item.slug}`}
+                    onClick={() => recordView(item.id)}
+                    className="block h-full"
+                  >
                     <Image
                       src={item.image}
                       alt={item.title}
                       width={600}
                       height={400}
                       className="w-full h-56 object-cover"
+                      priority={news.indexOf(item) < 6} // Priority for first row
                     />
                     <div className="p-6">
-                      <h3 className="text-xl font-bold mb-3 line-clamp-2">{item.title}</h3>
-                      <p className={`mb-4 text-sm leading-relaxed line-clamp-3 ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
+                      <h3 className="text-xl font-bold mb-3 line-clamp-2">
+                        {item.title}
+                      </h3>
+                      <p
+                        className={`mb-4 text-sm leading-relaxed line-clamp-3 ${
+                          darkMode ? "text-gray-300" : "text-gray-600"
+                        }`}
+                      >
                         {item.excerpt}
                       </p>
-                      <div className="flex justify-between text-sm">
+                      <div className="flex justify-between items-center text-sm">
                         <time className="text-gray-500">{item.date}</time>
                         <span className="text-red-600 font-semibold hover:underline">
                           Read More →
@@ -181,25 +189,25 @@ export default function CategoryPage() {
               ))}
             </div>
 
-            {/* Pagination Controls */}
+            {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex justify-center items-center gap-4 mt-12">
+              <div className="flex flex-wrap justify-center items-center gap-3 mt-12">
                 <button
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="px-6 py-3 rounded-lg bg-red-600 text-white disabled:bg-gray-400 disabled:cursor-not-allowed hover:bg-red-700 transition"
+                  className="px-6 py-3 rounded-lg bg-red-600 text-white disabled:bg-gray-400 disabled:cursor-not-allowed hover:bg-red-700 transition font-medium"
                 >
                   Previous
                 </button>
 
-                <span className="text-lg font-medium">
+                <span className="text-lg font-medium px-4">
                   Page {currentPage} of {totalPages}
                 </span>
 
                 <button
                   onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
-                  className="px-6 py-3 rounded-lg bg-red-600 text-white disabled:bg-gray-400 disabled:cursor-not-allowed hover:bg-red-700 transition"
+                  className="px-6 py-3 rounded-lg bg-red-600 text-white disabled:bg-gray-400 disabled:cursor-not-allowed hover:bg-red-700 transition font-medium"
                 >
                   Next
                 </button>
@@ -207,9 +215,9 @@ export default function CategoryPage() {
             )}
           </>
         ) : (
-          <p className="text-center py-20 text-xl text-gray-500">
-            No articles found in this category yet.
-          </p>
+          <div className="text-center py-20">
+            <p className="text-xl text-gray-500">No articles found in this category yet.</p>
+          </div>
         )}
       </main>
     </div>
